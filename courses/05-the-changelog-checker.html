@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- social:start -->
+<meta name="description" content="Session 5 of 6. A real OpenAPI diff engine in the page: two API descriptions in, every change classified breaking, non-breaking or docs-only, the SemVer bump it forces, and a drafted Keep a Changelog entry. Then ship a breaking change as a minor and watch who breaks.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Learn with Phoebe">
+<meta property="og:title" content="The changelog checker - learn api docs changelogs with phoebe">
+<meta property="og:description" content="Session 5 of 6. Diff two OpenAPI documents for real, get the SemVer bump and a changelog draft, and see what shipping a breaking change as a minor does to the people calling you.">
+<meta property="og:url" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/courses/05-the-changelog-checker.html">
+<meta property="og:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The changelog checker - learn api docs changelogs with phoebe">
+<meta name="twitter:description" content="Session 5 of 6. A real OpenAPI diff in the browser: breaking changes, SemVer, a changelog draft.">
+<meta name="twitter:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<!-- social:end -->
+<title>Session 5 · The changelog checker - learn api docs changelogs with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-api-docs-changelogs-with-phoebe</a> / Session 5 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn API Docs &amp; Changelogs with Phoebe · Session 5 of 6</div>
+    <h1>The changelog <span class="accent">checker</span></h1>
+    <p class="sub">Parcelpoint v2 is ready. It renames a field, switches to cursor pagination, retires a size class, removes an endpoint and moves webhooks to a bearer token. Somebody has to decide whether that is version 1.5 or version 2.0 and write the changelog, and tonight a machine does the first draft of both in front of you. The bench in this page is a real OpenAPI diff engine: it walks two API descriptions, classifies every change with a written rule table, works out the SemVer bump the changes force, and drafts the Keep a Changelog entry. Then it lets you overrule it and ship a breaking change as a minor, and counts who breaks.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Bench night</span>
+      <span class="chip audience">Bring your session 2 spec</span>
+      <span class="chip audience">Everything runs in the page</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:3">3-14 · The rule table</span>
+      <span class="a3" style="flex:6">14-40 · Four diffs and one bad decision</span>
+      <span class="a4" style="flex:1">40-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where we start</h2>
+    </div>
+    <p class="lede">A changelog written from memory lists what the team remembers doing. A changelog drafted from a diff lists what the contract actually did, including the field someone renamed on a Friday. Tonight's bench takes four pairs of API descriptions: three from the Constructed Parcelpoint example (a major release, a minor release and a wording fix) and one from the real world, the Swagger Petstore sample that ships with the OpenAPI tooling, set against a copy with six edits applied for teaching. Every number on this page is printed by the bench itself.</p>
+
+    <div class="legend">
+      <span class="pill">🎫 Clear all three quiz questions to stamp your passport</span>
+      <span class="pill">computed = the diff engine, running in this page</span>
+      <span class="pill">simulated = the constructed consumer list</span>
+    </div>
+
+    <div class="callout win">
+      <p><strong>★ What you walk out with tonight.</strong> Parcelpoint's v1 to v2 change list with every line classified, the SemVer bump it forces and a drafted changelog entry (piece five of the docs kit), the rule that requests may only widen and responses may only grow, and the count of what a dishonest version number costs.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-1">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers what counts as breaking</span>
+      <h2>The rule table, and the asymmetry under it</h2>
+      <span class="tag concept">6 min live</span>
+    </div>
+    <p class="lede">"Breaking" sounds like a judgement call. It is mostly a mechanical one, with a short list of genuine disagreements. A change breaks a caller when a request that used to succeed now fails, or when something the caller reads is no longer there. Everything in the engine's 28 rules is one of those two tests, applied to a particular part of the description.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A decision tree for classifying one change. First question: can a request that used to succeed now fail? Yes for a new required parameter or field, a narrowed request enum, a type change, an auth change or a removed parameter: breaking. Second question: did something a caller reads disappear? Yes for a removed operation, a removed response field or a removed success status: breaking. Third question: is it an addition? Yes: non-breaking, a minor. Otherwise only words changed: docs-only, a patch.">
+        <defs>
+          <filter id="s5aSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="53" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s5aHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s5aAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s5aH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s5aL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s5aS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s5aA { font: 700 11px Inter, sans-serif; fill: #1A4715; }
+          .s5aR { font: 800 12px Inter, sans-serif; fill: #991B1B; }
+          .s5aG { font: 800 12px Inter, sans-serif; fill: #12330E; }
+          .s5aN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s5aH" x="30" y="26">ONE CHANGE, THREE QUESTIONS</text>
+        <text class="s5aS" x="252" y="26">ask them in order; the first yes decides</text>
+
+        <g filter="url(#s5aSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="40" y="50" width="260" height="56" rx="10" transform="rotate(-0.6 170 78)" fill="#FFFFFF"/>
+          <rect x="40" y="148" width="260" height="56" rx="10" transform="rotate(0.5 170 176)" fill="#FFFFFF"/>
+          <rect x="40" y="246" width="260" height="56" rx="10" transform="rotate(-0.4 170 274)" fill="#FFFFFF"/>
+          <rect x="400" y="50" width="440" height="56" rx="10" transform="rotate(0.4 620 78)" fill="#FEF2F2" stroke="#991B1B"/>
+          <rect x="400" y="148" width="440" height="56" rx="10" transform="rotate(-0.4 620 176)" fill="#FEF2F2" stroke="#991B1B"/>
+          <rect x="400" y="246" width="210" height="56" rx="10" transform="rotate(0.6 505 274)" fill="#EEF6E8"/>
+          <rect x="630" y="246" width="210" height="56" rx="10" transform="rotate(-0.5 735 274)" fill="url(#s5aHc)"/>
+          <path d="M302 78 L394 78" marker-end="url(#s5aAr)"/>
+          <path d="M302 176 L394 176" marker-end="url(#s5aAr)"/>
+          <path d="M302 274 L394 274" marker-end="url(#s5aAr)"/>
+          <path d="M170 108 L170 142" marker-end="url(#s5aAr)"/>
+          <path d="M170 206 L170 240" marker-end="url(#s5aAr)"/>
+          <path d="M290 304 C330 330 640 330 700 306" marker-end="url(#s5aAr)"/>
+        </g>
+
+        <text class="s5aL" x="56" y="74">1 · Can a request that used</text>
+        <text class="s5aL" x="56" y="92">to succeed now fail?</text>
+        <text class="s5aL" x="56" y="172">2 · Did something a caller</text>
+        <text class="s5aL" x="56" y="190">reads disappear?</text>
+        <text class="s5aL" x="56" y="270">3 · Is it an addition?</text>
+        <text class="s5aS" x="56" y="288">a new op, field, param or code</text>
+
+        <text class="s5aA" x="348" y="70" text-anchor="middle">yes</text>
+        <text class="s5aA" x="348" y="168" text-anchor="middle">yes</text>
+        <text class="s5aA" x="348" y="266" text-anchor="middle">yes</text>
+        <text class="s5aA" x="186" y="130">no</text>
+        <text class="s5aA" x="186" y="228">no</text>
+        <text class="s5aA" x="470" y="340">no: only words changed</text>
+
+        <text class="s5aR" x="416" y="74">BREAKING · new required input, narrowed</text>
+        <text class="s5aS" x="416" y="92">request enum, type change, auth change, removed param</text>
+        <text class="s5aR" x="416" y="172">BREAKING · removed operation,</text>
+        <text class="s5aS" x="416" y="190">removed response field, removed success status</text>
+        <text class="s5aG" x="416" y="270">NON-BREAKING</text>
+        <text class="s5aS" x="416" y="288">forces a MINOR</text>
+        <text class="s5aG" x="646" y="270">DOCS-ONLY</text>
+        <text class="s5aS" x="646" y="288">a PATCH at most</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - two questions find every breaking change; everything that survives both is an addition or a sentence</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Requests may only widen; responses may only grow<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The two questions produce an asymmetry worth memorising. On the <strong>request</strong> side, the API is the one checking: it may accept more than before (a new optional field, an extra enum value, a required field made optional) but never less, because every narrowing turns some caller's working request into a 400. On the <strong>response</strong> side, the caller is the one reading: the API may send more than before (a new field, a new status code for a new situation) but never less, because a caller somewhere reads the field you removed.</p>
+        <p>That is why the same edit lands differently on each side. In the Petstore preset, removing <code>pending</code> from the pet status list is breaking on <code>POST /pet</code> and <code>PUT /pet</code>, where callers send it, and non-breaking on the five operations that only return pets, where a caller simply never sees the value again. One schema change, two verdicts, decided by direction.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Where the published rule lists disagree, and which side the engine takes<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The rule table is built from two published sources read for this session: the breaking-changes list of oasdiff, an open-source OpenAPI diff tool, and GitHub's REST "API versions" page, which lists what GitHub treats as breaking and as additive. They agree on most rows. They disagree on three, and the disagreement is the lesson.</p>
+        <p><strong>Removing an optional response field.</strong> GitHub lists "removing or renaming a parameter or response field" as breaking. oasdiff classifies a removed <em>required</em> response property as breaking but a removed <em>optional</em> one as informational, on the reasoning that a client already had to cope with its absence. The engine follows GitHub: a field that was documented and usually present is one somebody reads.</p>
+        <p><strong>A new value in a response enum.</strong> GitHub lists adding enum values as additive. oasdiff raises it as a warning, because a client with an exhaustive switch over the values crashes on the new one. The engine follows GitHub and calls it non-breaking; the Recipient app in the consumer panel is the client oasdiff is worried about, and Part 3 comes back to it.</p>
+        <p><strong>Removing a parameter.</strong> GitHub: breaking. oasdiff: "potentially breaking" (a warning), since many servers ignore unknown parameters and the old call still succeeds. The engine follows GitHub, because a caller still sending <code>page</code> to a cursor API gets the first page forever and no error to tell them.</p>
+        <p>None of these is settled. Write your own team's choice down next to your rule table, and say which source it follows.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What the engine compares, and what it cannot see<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>It compares paths and operations, parameters (path-level ones merged in), request bodies and responses for the JSON media type, and auth requirements, following <code>$ref</code> pointers into <code>components</code>. It reads OpenAPI 3.0 <code>nullable: true</code> and the 3.1 type array <code>["string", "null"]</code> as the same thing, so a migration between them is not reported as a type change.</p>
+        <p>It does not compare top-level webhooks, callbacks, links, response headers, non-JSON media types, or a response field changing from required to optional; it reads JSON only, because no YAML parser is loaded in the page. And it cannot see intent. A rename arrives as one removal and one addition, which is the truth for the caller: the old name stops working. A bug fix is invisible, because the description did not change, which is why the drafted entry never has a Fixed or Security section.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="section" id="bench">
+    <div class="section-kicker">
+      <span class="klabel">Build-along · the bench</span>
+      <h2>Four diffs, computed in front of you</h2>
+      <span class="tag demo">★ 26 min · the main event</span>
+    </div>
+    <p class="lede">Run the four presets in the order below. For each one, read the bump first, then the three counts, then the change table from the top (breaking rows sort first), then the drafted entry. Say out loud which lines you would rewrite before publishing. After the fourth, open the editor and make one change of your own.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="What the engine does, as a pipeline: two OpenAPI documents, old and new, have their refs resolved, then are walked path by path, operation by operation, through parameters, request bodies and responses. Each difference is matched to one rule, which fixes its severity and its changelog category. The worst severity sets the SemVer bump, and the categorised lines become the drafted changelog entry.">
+        <defs>
+          <filter id="s5bSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="61" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s5bHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s5bAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s5bH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s5bL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s5bS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s5bW { font: 800 12px Inter, sans-serif; fill: #FFFFFF; }
+          .s5bN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s5bH" x="30" y="26">INSIDE THE BENCH</text>
+        <text class="s5bS" x="160" y="26">the same engine in this page and in the Python reference that checks it</text>
+
+        <g filter="url(#s5bSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="30" y="60" width="110" height="46" rx="6" transform="rotate(-2 85 83)" fill="#FFFFFF"/>
+          <rect x="34" y="128" width="110" height="46" rx="6" transform="rotate(1.5 89 151)" fill="url(#s5bHc)"/>
+          <rect x="190" y="88" width="130" height="62" rx="10" fill="#EEF6E8"/>
+          <rect x="370" y="88" width="150" height="62" rx="10" fill="#EEF6E8"/>
+          <rect x="570" y="88" width="120" height="62" rx="10" fill="#1A4715"/>
+          <rect x="740" y="50" width="112" height="46" rx="10" fill="#F2B33D"/>
+          <rect x="740" y="142" width="112" height="46" rx="10" fill="#FFFFFF"/>
+          <path d="M146 90 L184 108" marker-end="url(#s5bAr)"/>
+          <path d="M148 150 L184 130" marker-end="url(#s5bAr)"/>
+          <path d="M322 119 L364 119" marker-end="url(#s5bAr)"/>
+          <path d="M522 119 L564 119" marker-end="url(#s5bAr)"/>
+          <path d="M692 108 L734 78" marker-end="url(#s5bAr)"/>
+          <path d="M692 130 L734 160" marker-end="url(#s5bAr)"/>
+        </g>
+
+        <text class="s5bL" x="46" y="88">old.json</text>
+        <text class="s5bL" x="50" y="156">new.json</text>
+        <text class="s5bL" x="204" y="114">resolve $refs</text>
+        <text class="s5bS" x="204" y="132">into components</text>
+        <text class="s5bL" x="384" y="114">walk and compare</text>
+        <text class="s5bS" x="384" y="132">op, param, body, response</text>
+        <text class="s5bW" x="584" y="114">28 rules</text>
+        <text class="s5bW" x="584" y="132">severity, category</text>
+        <text class="s5bL" x="754" y="78">SemVer bump</text>
+        <text class="s5bL" x="754" y="170">changelog draft</text>
+
+        <text class="s5bS" x="190" y="196">a rename arrives as one removal plus one addition: the engine cannot see intent</text>
+        <text class="s5bS" x="190" y="214">worst severity wins: any breaking line makes it a MAJOR</text>
+        <text class="s5bN" x="30" y="252">Every rule has a test that fires it and a near miss that must not; Python and the page agree on every preset.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the dark box is the written rule table; everything to its left is plumbing and everything to its right is arithmetic</figcaption>
+    </figure>
+
+    <div class="adc-bench" data-preset="pp-major"></div>
+
+    <div class="steps">
+      <div class="step">
+        <p><strong>Parcelpoint v1 to v2.</strong> The bench prints <strong>MAJOR</strong>, 1.4.2 to 2.0.0, from <strong>30 changes: 12 breaking, 16 non-breaking, 2 docs only</strong>. Read the twelve breaking rows. Find the rename: <code>locker_id</code> removed and <code>id</code> added, twice each, once per operation that returns a locker. Find the pagination change as four rows, two parameters removed and two added, plus the response fields that went with them.</p>
+      </div>
+      <div class="step">
+        <p><strong>Parcelpoint v1 to v1.5.</strong> <strong>MINOR</strong>, 1.4.2 to 1.5.0, from <strong>7 changes: 0 breaking, 6 non-breaking, 1 docs only</strong>. This is the release that should have come first: it adds <code>free_slots</code> to the locker, adds an optional <code>recipient_email</code>, and marks the status endpoint deprecated. SemVer rule 7 is why deprecation alone forces a minor.</p>
+      </div>
+      <div class="step">
+        <p><strong>Parcelpoint wording fix.</strong> <strong>PATCH</strong>, 1.4.2 to 1.4.3, from <strong>3 changes, all docs only</strong>. Three descriptions edited and nothing a client can detect. Check the drafted entry: every line is marked "(docs only)", which is your cue to decide whether it belongs in the public changelog at all.</p>
+      </div>
+      <div class="step">
+        <p><strong>Swagger Petstore, edited.</strong> <strong>MAJOR</strong>, from <strong>14 changes: 3 breaking, 10 non-breaking, 1 docs only</strong>. The old document is the real Petstore sample (OpenAPI 3.0.4, Apache-2.0); the new one has six edits. Find the one schema edit that produced seven rows: <code>pending</code> leaving the pet status list. The version goes 1.0.30-SNAPSHOT to 2.0.0, because the engine drops the pre-release label before bumping.</p>
+      </div>
+      <div class="step">
+        <p><strong>Make one change of your own.</strong> Load Parcelpoint v1 to v1.5, open "Edit the two documents", find <code>"recipient_email"</code> in the new document's <code>ParcelCreate</code> and add it to that schema's <code>required</code> list. Run the diff. The bench should now print MAJOR, with "new required request field recipient_email" as the breaking line. One word in a list moved the release from 1.5.0 to 2.0.0.</p>
+        <div class="prompt-box good"><span class="label">★ The edit, in the new document</span>"ParcelCreate": {
+  "type": "object",
+  "required": ["locker_id", "recipient_phone", "size", "recipient_email"],
+  ...</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <p><strong>Read the draft, then rewrite it.</strong> The drafted entry is correct and machine-shaped: "request field size no longer accepts xl (POST /parcels; POST /reservations)". A human version says why and what to do: "Size class xl is retired; send large instead." Session 6 turns the draft into the entry a reader can act on. The diff makes sure nothing is missing; the writing makes it usable.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-2">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers what the four diffs show</span>
+      <h2>Four releases, four different shapes</h2>
+      <span class="tag concept">5 min live</span>
+    </div>
+    <p class="lede">Put the four results side by side and the version number stops being a feeling. A release is a MAJOR the moment one line is breaking, however many friendly additions surround it, and the count of additions tells you nothing about how hard the upgrade will be.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stacked bars of change counts printed by the bench for four presets. Parcelpoint v1 to v2: 12 breaking, 16 non-breaking, 2 docs-only, MAJOR. Petstore edited: 3 breaking, 10 non-breaking, 1 docs-only, MAJOR. Parcelpoint v1 to v1.5: 0 breaking, 6 non-breaking, 1 docs-only, MINOR. Parcelpoint wording fix: 3 docs-only, PATCH.">
+        <defs>
+          <filter id="s5cSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="67" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s5cHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+        </defs>
+        <style>
+          .s5cH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s5cL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s5cS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s5cW { font: 800 12px Inter, sans-serif; fill: #FFFFFF; }
+          .s5cK { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s5cV { font: 800 13px Inter, sans-serif; fill: #12330E; }
+          .s5cN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s5cH" x="30" y="26">CHANGES PER RELEASE, AS THE BENCH COUNTS THEM</text>
+        <text class="s5cS" x="380" y="26">16px per change</text>
+
+        <g filter="url(#s5cSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="260" y="55" width="192" height="30" fill="#991B1B" stroke="#991B1B"/>
+          <rect x="452" y="55" width="256" height="30" fill="#B7D6A3"/>
+          <rect x="708" y="55" width="32" height="30" fill="url(#s5cHc)"/>
+          <rect x="260" y="107" width="48" height="30" fill="#991B1B" stroke="#991B1B"/>
+          <rect x="308" y="107" width="160" height="30" fill="#B7D6A3"/>
+          <rect x="468" y="107" width="16" height="30" fill="url(#s5cHc)"/>
+          <rect x="260" y="159" width="96" height="30" fill="#B7D6A3"/>
+          <rect x="356" y="159" width="16" height="30" fill="url(#s5cHc)"/>
+          <rect x="260" y="211" width="48" height="30" fill="url(#s5cHc)"/>
+        </g>
+
+        <text class="s5cL" x="240" y="75" text-anchor="end">Parcelpoint v1 to v2</text>
+        <text class="s5cL" x="240" y="127" text-anchor="end">Petstore, edited</text>
+        <text class="s5cL" x="240" y="179" text-anchor="end">Parcelpoint v1 to v1.5</text>
+        <text class="s5cL" x="240" y="231" text-anchor="end">Parcelpoint wording fix</text>
+
+        <text class="s5cW" x="272" y="75">12 breaking</text>
+        <text class="s5cK" x="464" y="75">16 non-breaking</text>
+        <text class="s5cV" x="752" y="75">MAJOR</text>
+        <text class="s5cK" x="320" y="127">10</text>
+        <text class="s5cV" x="496" y="127">MAJOR · 3 / 10 / 1</text>
+        <text class="s5cK" x="272" y="179">6</text>
+        <text class="s5cV" x="384" y="179">MINOR · 0 / 6 / 1</text>
+        <text class="s5cV" x="320" y="231">PATCH · 0 / 0 / 3</text>
+
+        <text class="s5cS" x="260" y="266">red = breaking · green = non-breaking · hatched = docs only</text>
+        <text class="s5cN" x="30" y="290">Petstore has fewer additions than v1.5 and is still a MAJOR: three breaking lines outrank any number of good ones.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the bump follows the worst line, never the longest bar</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Parcelpoint v2, read as a list of broken promises<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Grouped the way the drafted entry groups them, the twelve breaking changes become ten lines. <strong>Removed (7 lines):</strong> the status endpoint; the <code>page</code> and <code>per_page</code> parameters; the <code>locker_id</code>, <code>page</code> and <code>total_pages</code> response fields; the 201 response on reservations. <strong>Changed (3 lines):</strong> webhooks moved from the API key to a bearer token; <code>recipient_email</code> is a new required field; size <code>xl</code> is no longer accepted on parcels or reservations.</p>
+        <p>Each of the ten needs a sentence in session 6's migration guide: what to send or read instead, and by when. Notice that the bench found the 201-to-202 switch on <code>POST /reservations</code>, which no one would list as a "feature": a client that checks for 201 treats every reservation as a failure from the day v2 ships.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Why a long list of additions does not soften a major<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Semantic Versioning 2.0.0 sets the bump by the most serious change: MAJOR for incompatible API changes, MINOR for backward-compatible functionality, PATCH for backward-compatible bug fixes. It has no notion of averaging. Twelve breaking changes and sixteen additions is a major release with sixteen additions in it, and the additions can be shipped earlier, in a minor, if the team wants them out sooner. That is exactly what the v1.5 preset is: the additive half of v2, released on its own.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="section" id="part-3">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers the anti-lever</span>
+      <h2>Ship it as a minor, and count who breaks</h2>
+      <span class="tag concept">6 min live</span>
+    </div>
+    <p class="lede">The bench has a second button: <strong>Ship it as a minor</strong>. It is the decision every team is tempted by when the major release feels too big to announce. Load Parcelpoint v1 to v2 and press it. The diff does not change; the version does, and so does what happens to the six constructed consumers of the API.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Before and after for the same twelve breaking changes. Left, shipped honestly as 2.0.0: the four affected consumers stay on version 1 and are warned, so 0 of 6 break without warning and 4 of 6 must migrate on notice. Right, shipped as 1.5.0: clients that accept any 1.x version pull it in automatically, and 4 of 6 consumers break on their next deploy with no warning. The Recipient app and the kiosk firmware are unaffected either way.">
+        <defs>
+          <filter id="s5dSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="71" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <marker id="s5dAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s5dH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s5dL { font: 600 11.5px Inter, sans-serif; fill: #17231A; }
+          .s5dS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s5dB { font: 800 11px Inter, sans-serif; fill: #6B4700; }
+          .s5dR { font: 800 12px Inter, sans-serif; fill: #991B1B; }
+          .s5dG { font: 800 12px Inter, sans-serif; fill: #12330E; }
+          .s5dV { font: 800 20px Inter, sans-serif; fill: #12330E; }
+          .s5dX { font: 800 20px Inter, sans-serif; fill: #991B1B; }
+          .s5dN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <g filter="url(#s5dSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="40" y="40" width="390" height="220" rx="12" fill="#EEF6E8" stroke="#1A4715"/>
+          <rect x="450" y="40" width="390" height="220" rx="12" fill="#FEF2F2" stroke="#FCA5A5"/>
+          <!-- left: four warned consumers, two unaffected -->
+          <rect x="60" y="150" width="76" height="30" rx="6" transform="rotate(-2 98 165)" fill="#FDF3DC"/>
+          <rect x="146" y="150" width="76" height="30" rx="6" transform="rotate(1.5 184 165)" fill="#FDF3DC"/>
+          <rect x="232" y="150" width="76" height="30" rx="6" transform="rotate(-1 270 165)" fill="#FDF3DC"/>
+          <rect x="318" y="150" width="76" height="30" rx="6" transform="rotate(2 356 165)" fill="#FDF3DC"/>
+          <rect x="146" y="196" width="76" height="30" rx="6" transform="rotate(-1.5 184 211)" fill="#FFFFFF"/>
+          <rect x="232" y="196" width="76" height="30" rx="6" transform="rotate(1 270 211)" fill="#FFFFFF"/>
+          <!-- right: four broken, two unaffected -->
+          <rect x="470" y="150" width="76" height="30" rx="6" transform="rotate(2 508 165)" fill="#FCA5A5" stroke="#991B1B"/>
+          <rect x="556" y="150" width="76" height="30" rx="6" transform="rotate(-1.5 594 165)" fill="#FCA5A5" stroke="#991B1B"/>
+          <rect x="642" y="150" width="76" height="30" rx="6" transform="rotate(1 680 165)" fill="#FCA5A5" stroke="#991B1B"/>
+          <rect x="728" y="150" width="76" height="30" rx="6" transform="rotate(-2 766 165)" fill="#FCA5A5" stroke="#991B1B"/>
+          <rect x="556" y="196" width="76" height="30" rx="6" transform="rotate(1.5 594 211)" fill="#FFFFFF"/>
+          <rect x="642" y="196" width="76" height="30" rx="6" transform="rotate(-1 680 211)" fill="#FFFFFF"/>
+        </g>
+
+        <text class="s5dG" x="58" y="66">Shipped as 2.0.0</text>
+        <text class="s5dS" x="58" y="86">clients on "any 1.x" stay on 1.4.2</text>
+        <text class="s5dV" x="58" y="120">0 of 6</text>
+        <text class="s5dS" x="134" y="120">broken without warning</text>
+        <text class="s5dB" x="58" y="140">4 of 6 warned, must migrate</text>
+
+        <text class="s5dR" x="468" y="66">Shipped as 1.5.0</text>
+        <text class="s5dS" x="468" y="86">clients on "any 1.x" pull it in</text>
+        <text class="s5dX" x="468" y="120">4 of 6</text>
+        <text class="s5dS" x="544" y="120">broken without warning</text>
+
+        <text class="s5dS" x="146" y="246">2 unaffected either way</text>
+        <text class="s5dS" x="556" y="246">same 2 unaffected</text>
+        <text class="s5dN" x="30" y="296">The diff is identical in both panels. Only the number on the release changed, and with it who finds out first.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - a minor is a promise a machine believes; a dependency range will install it without asking anyone</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why a wrong version number is worse than no version number<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Version numbers are read by machines before people. A client library that depends on "any 1.x at or above 1.4.2" (a caret range such as <code>^1.4.2</code> in npm works this way) treats 1.5.0 as safe to install automatically. Shipped honestly, 2.0.0 sits outside that range: nothing upgrades until a person decides to, and that person can read the migration guide first. Shipped as 1.5.0, the upgrade happens on the next deploy of every consumer, and the first anyone hears of the renamed field is an error in production.</p>
+        <p>On the bench, with v1 to v2 loaded: the honest bump prints <strong>0 of 6 broken without warning, 4 of 6 warned and must migrate</strong>. Ship it as a minor and it prints <strong>4 of 6 broken without warning</strong>, with the version reading 1.5.0. The four are the Shopfront checkout plugin (six hits, from <code>page</code> to the xl size), the Courier handheld app (the removed status endpoint and the lost 201), the Partner analytics export (<code>total_pages</code>) and the SMS notification service (the auth change).</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The two consumers that did not break, and what the panel is<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The Locker kiosk firmware reads only <code>address</code> and <code>open_24h</code> from a locker, and cancels reservations; nothing it touches changed. The Recipient mobile app reads a parcel's <code>status</code>, which in v2 may now return <code>returned</code>. By the rule table that is non-breaking, and the panel counts it as unaffected. If the app's code handles the four old statuses in an exhaustive switch with no default, it will still fall over on the first returned parcel. That is precisely oasdiff's reason for warning on new response enum values, and it is the case for writing "status may return new values; handle unknown ones" in your reference from day one.</p>
+        <p>The consumer panel is a simulation. The six consumers and the fields each one reads are constructed for teaching; a consumer counts as broken when a breaking change is operation-wide (a removed operation, an auth change, a new required input, a lost success status) or names a field it reads. Real impact needs real usage data, such as which fields your clients actually send and read. The diff underneath is real.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Making breaking changes rare, on purpose.</strong> Since its 2024-09-30.acacia release, Stripe ships API versions monthly with no breaking changes, and twice a year issues a major release that starts with a version containing them. Each row of its changelog carries an explicit "Breaking change?" column. That is the policy version of tonight's bench: the classification is decided before the release is named, never after.</p>
+    </div>
+  </section>
+
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Before session 6</h2>
+      <span class="tag exercise">30 min</span>
+    </div>
+    <ol>
+      <li><strong>Diff your own session 2 spec against an edited copy.</strong> Paste both as JSON into the bench editor (convert YAML first with any converter you trust). Make one change on each side of the asymmetry: narrow a request enum, then remove a response field. Confirm both come back breaking.</li>
+      <li><strong>Find the rule you disagree with.</strong> Pick one of the three disagreements from Part 1, decide your team's side, and write two sentences explaining it, citing the source you follow.</li>
+      <li><strong>Rewrite the Parcelpoint v2 drafted entry by hand.</strong> Keep every line the diff found; add the why and the instead to each breaking line. Keep the Keep a Changelog categories. This is piece five of the docs kit.</li>
+      <li><strong>Split v2.</strong> List which of the 16 non-breaking changes could ship in a 1.x minor before 2.0.0. Compare with what the v1.5 preset actually contains.</li>
+    </ol>
+  </section>
+
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions</h2>
+    </div>
+    <p>Clear all three and session 5 gets stamped in your passport.</p>
+
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · In the Petstore preset, removing <code>pending</code> from the pet status list is reported as breaking on two operations and non-breaking on five. Why?</p>
+      <button class="qopt" type="button">A · The engine is inconsistent about enums</button>
+      <button class="qopt" type="button">B · On <code>POST /pet</code> and <code>PUT /pet</code> callers send the status, and a request that used to succeed with <code>pending</code> now fails; on the five operations that only return pets, callers just never see the value again</button>
+      <button class="qopt" type="button">C · Two of the operations require authentication</button>
+      <button class="qopt" type="button">D · The five response operations were already deprecated</button>
+      <p class="qwhy">Requests may only widen; responses may only grow. A narrowed enum is a narrowing on the request side and a shrinking set of possible values on the response side, and only the first breaks a working caller.</p>
+    </div>
+
+    <div class="quiz-q" data-answer="3">
+      <p class="qtext">2 · With Parcelpoint v1 to v2 loaded, what changes when you press "Ship it as a minor"?</p>
+      <button class="qopt" type="button">A · The change list shrinks, because breaking changes are hidden</button>
+      <button class="qopt" type="button">B · Nothing at all; the button is decorative</button>
+      <button class="qopt" type="button">C · The breaking changes are reclassified as non-breaking</button>
+      <button class="qopt" type="button">D · The 30 changes stay the same and the version becomes 1.5.0, so the four affected consumers go from "warned and must migrate" to broken without warning: 4 of 6</button>
+      <p class="qwhy">The diff is a fact about the two documents and does not move. The version is a decision, and a minor tells every "any 1.x" client it is safe to upgrade automatically.</p>
+    </div>
+
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Why does the drafted changelog never contain a Fixed or a Security section?</p>
+      <button class="qopt" type="button">A · Because a diff of two descriptions cannot tell a bug fix or a vulnerability fix from any other change, and usually cannot see one at all, since the contract did not change; those lines must be written by a person</button>
+      <button class="qopt" type="button">B · Because Keep a Changelog 1.1.0 does not have those categories</button>
+      <button class="qopt" type="button">C · Because Parcelpoint has no bugs</button>
+      <button class="qopt" type="button">D · Because security changes are always breaking and go under Removed</button>
+      <p class="qwhy">Keep a Changelog has six types: Added, Changed, Deprecated, Removed, Fixed and Security. The diff can draft the first four from the contract. The last two are about behaviour and intent, which the contract does not record.</p>
+    </div>
+
+    <p class="quiz-score"></p>
+  </section>
+
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Sources covered</span>
+      <h2>What this session teaches, and where it came from</h2>
+    </div>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">oasdiff breaking-changes list</span><span class="note">Read at oasdiff.com/docs/breaking-changes and its check pages; levels Breaking, Warning, Info; the basis for most of the 28 rules</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">GitHub REST, "API Versions"</span><span class="note">Read at source: the breaking and additive lists; the engine follows GitHub on the three rows where it and oasdiff disagree</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Semantic Versioning 2.0.0</span><span class="note">Read at semver.org: MAJOR, MINOR, PATCH; rule 7, deprecation forces a minor</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Keep a Changelog 1.1.0</span><span class="note">Read at keepachangelog.com: the six change types the draft is sorted into</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">OpenAPI 3.0 to 3.1 type nullability</span><span class="note">OpenAPI Initiative migration post: nullable replaced by a type array with "null"; the engine treats them as equal</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Swagger Petstore sample</span><span class="note">github.com/swagger-api/swagger-petstore, OpenAPI 3.0.4, Apache-2.0; the "old" document is unedited, the "new" one carries six labelled edits</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Stripe API versioning and changelog</span><span class="note">Read at docs.stripe.com: monthly non-breaking releases since 2024-09-30.acacia, two majors a year; re-verify before delivery</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Consumer impact</span><span class="note">Simulated: six constructed consumers and their fields; labelled on the widget</span></div>
+    </div>
+    <p class="mono" style="margin-top:14px">Every fact on this page, and its verification tier, is recorded in the course's source map.</p>
+  </section>
+
+  <section class="cheat" id="cheatsheet">
+    <h3>Session 5 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Two tests find breaking</b><span>Can a request that used to succeed now fail? Did something a caller reads disappear?</span></div>
+      <div class="cheat-item"><b>The asymmetry</b><span>Requests may only widen. Responses may only grow.</span></div>
+      <div class="cheat-item"><b>The worst line sets the bump</b><span>One breaking change makes a MAJOR, whatever else ships with it.</span></div>
+      <div class="cheat-item"><b>A rename is a removal</b><span>The old name stops working for the caller; the changelog must say both halves.</span></div>
+      <div class="cheat-item"><b>The diff drafts four sections</b><span>Added, Changed, Deprecated, Removed. Fixed and Security are written by a person.</span></div>
+      <div class="cheat-item"><b>Never ship a break as a minor</b><span>Version ranges install minors automatically. Parcelpoint: 0 of 6 broken honestly, 4 of 6 as a minor.</span></div>
+    </div>
+  </section>
+
+  <div class="callout next">
+    <span class="nx-pill">Next session</span>
+    <p>You have a correct list of what v2 breaks. Session 6 turns it into something a reader can act on: a choice of versioning style, a deprecation notice with the Deprecation and Sunset headers, a migration guide with one sentence per broken promise, and a timeline. Then the whole Parcelpoint docs kit gets scored.</p>
+  </div>
+
+  <footer class="pagefoot">
+    <span>Session 5 of 6 · learn-api-docs-changelogs-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="04-examples-that-run.html">← Prev: Examples that run</a> &nbsp;·&nbsp; <a href="06-versioning-and-deprecation.html">Next: Versioning and deprecation →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/adc-sample.js?v=1"></script>
+<script src="../assets/adc-live.js?v=2"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

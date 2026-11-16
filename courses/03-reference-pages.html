@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- social:start -->
+<meta name="description" content="Session 3 of 6. A reference page exists for the reader with a 409 in hand. The seven things every endpoint entry owes, errors written as code, cause and fix, what a page must say about rate limits, pagination and retries, and a rewrite of the constructed Parcelpoint POST /parcels entry.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Learn with Phoebe">
+<meta property="og:title" content="Reference pages - learn api docs changelogs with phoebe">
+<meta property="og:description" content="Session 3 of 6. The seven things every endpoint entry owes, code-cause-fix error tables, and saying plainly whether a retry is safe.">
+<meta property="og:url" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/courses/03-reference-pages.html">
+<meta property="og:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Reference pages - learn api docs changelogs with phoebe">
+<meta name="twitter:description" content="Session 3 of 6. Seven things per endpoint, code-cause-fix errors, and whether a retry is safe.">
+<meta name="twitter:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<!-- social:end -->
+<title>Session 3 · Reference pages - learn api docs changelogs with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-api-docs-changelogs-with-phoebe</a> / Session 3 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn API Docs &amp; Changelogs with Phoebe · Session 3 of 6</div>
+    <h1>Reference pages that answer <span class="accent">the real question</span></h1>
+    <p class="sub">Nobody reads a reference page for pleasure. They arrive with a status code in one hand and a production incident in the other, and they want the answer before the next alert fires. Tonight we take the OpenAPI document from session 2 and turn one operation of it into a reference entry that serves that reader: the seven things every entry owes, errors written as code, cause and fix, and the three questions most pages dodge, rate limits, pagination and whether a retry is safe. The operation is <code>POST /parcels</code> from the Constructed Parcelpoint example.</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Core</span>
+      <span class="chip audience">Engineers who ship APIs, platform and DX teams, tech writers</span>
+      <span class="chip audience">Bring one endpoint you own</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Entry anatomy, errors, limits and retries</span>
+      <span class="a3" style="flex:5">18-40 · Build-along: rewrite POST /parcels</span>
+      <span class="a4" style="flex:1">40-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where we start</h2>
+    </div>
+    <p class="lede">Session 1 named five readers and gave the debug reader to the reference page. Session 2 wrote Parcelpoint's contract down in OpenAPI 3.1. Tonight the two meet. The spec already knows every field name, type, enum value and status code of <code>POST /parcels</code>; the reference page's job is to put those facts in the order the debug reader needs them, and to add the three things a spec cannot hold on its own: why a code happens, what to do about it, and what the API does not promise. Every Parcelpoint detail on this page is the Constructed Parcelpoint example, v1.4.2, the same document the session 5 bench loads.</p>
+
+    <div class="legend">
+      <span class="pill">🎫 Clear all three quiz questions to stamp your passport</span>
+      <span class="pill">Live = presented in the 45 minutes</span>
+      <span class="pill">Self-study = the full depth, after class</span>
+      <span class="pill">★ Build-along = do it yourself, in the page</span>
+    </div>
+
+    <div class="callout win">
+      <p><strong>★ What you walk out with tonight.</strong> A rewritten reference entry for Parcelpoint's <code>POST /parcels</code> with a field table, a code-cause-fix error table, a request and its response, and an honest gaps section; a six-row scorecard you can run on any endpoint you own; and the habit of writing "none documented" instead of leaving a silence the reader has to guess at.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-1">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers what an endpoint page owes the reader</span>
+      <h2>Seven things, in the order of the spec</h2>
+      <span class="tag concept">6 min live</span>
+    </div>
+    <p class="lede">The debug reader from session 1 does not read a reference entry top to bottom. They jump to the part that matches the symptom, read three lines and leave. That only works if every entry has the same parts in the same place, so the reader learns the shape once and can find the 409 on any page of your API without thinking. Here is the shape, drawn on the entry we rewrite tonight.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A wireframe of the POST /parcels reference entry in seven blocks, in spec order: 1 the one-line summary, 2 auth with the X-Api-Key header, 3 path and query parameters (none on this call), 4 the body fields locker_id, recipient_phone and size with type, required and allowed values, 5 the responses 201, 400, 401 and 409 with meaning, cause and fix, 6 a real request, 7 the 201 response body. Block 5 is highlighted. Beside it, the debug reader's eye path: they jump first to block 5 to read what 409 means, then back to block 4 to check the size they sent, then to block 6 to compare their call with the sample.">
+        <defs>
+          <filter id="s3aSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="53" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s3aHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s3aAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s3aH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s3aL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s3aS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s3aB { font: 800 11px Inter, sans-serif; fill: #6B4700; }
+          .s3aA { font: 700 11px Inter, sans-serif; fill: #1A4715; }
+          .s3aN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s3aH" x="30" y="26">ONE ENTRY, SEVEN THINGS</text>
+        <text class="s3aS" x="220" y="26">Constructed Parcelpoint example, POST /parcels, blocks in spec order</text>
+
+        <g filter="url(#s3aSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="40" y="42" width="470" height="344" rx="12" transform="rotate(-0.3 275 214)" fill="#FCFDFB"/>
+          <rect x="56" y="56" width="438" height="44" rx="8" transform="rotate(0.4 275 78)" fill="#FFFFFF"/>
+          <rect x="56" y="108" width="438" height="32" rx="8" transform="rotate(-0.4 275 124)" fill="#FFFFFF"/>
+          <rect x="56" y="148" width="438" height="32" rx="8" transform="rotate(0.3 275 164)" fill="#FFFFFF"/>
+          <rect x="56" y="188" width="438" height="48" rx="8" transform="rotate(-0.3 275 212)" fill="#EEF6E8"/>
+          <rect x="56" y="244" width="438" height="48" rx="8" transform="rotate(0.4 275 268)" fill="#F2B33D"/>
+          <rect x="56" y="300" width="438" height="32" rx="8" transform="rotate(-0.4 275 316)" fill="#FFFFFF"/>
+          <rect x="56" y="340" width="438" height="32" rx="8" transform="rotate(0.3 275 356)" fill="#FFFFFF"/>
+          <circle cx="76" cy="78" r="10" fill="#EEF6E8"/>
+          <circle cx="76" cy="124" r="10" fill="#EEF6E8"/>
+          <circle cx="76" cy="164" r="10" fill="#EEF6E8"/>
+          <circle cx="76" cy="212" r="10" fill="#FFFFFF"/>
+          <circle cx="76" cy="268" r="10" fill="#FFFFFF"/>
+          <circle cx="76" cy="316" r="10" fill="#EEF6E8"/>
+          <circle cx="76" cy="356" r="10" fill="#EEF6E8"/>
+          <!-- eye doodle -->
+          <path d="M806 66 Q830 50 854 66 Q830 82 806 66"/>
+          <circle cx="830" cy="66" r="5" fill="#1A4715"/>
+          <!-- eye path -->
+          <circle cx="576" cy="130" r="12" fill="#F2B33D"/>
+          <circle cx="576" cy="210" r="12" fill="#FFFFFF"/>
+          <circle cx="576" cy="290" r="12" fill="#FFFFFF"/>
+          <path d="M576 144 L576 194" marker-end="url(#s3aAr)"/>
+          <path d="M576 224 L576 274" marker-end="url(#s3aAr)"/>
+        </g>
+
+        <text class="s3aH" x="76" y="82" text-anchor="middle">1</text>
+        <text class="s3aH" x="76" y="128" text-anchor="middle">2</text>
+        <text class="s3aH" x="76" y="168" text-anchor="middle">3</text>
+        <text class="s3aH" x="76" y="216" text-anchor="middle">4</text>
+        <text class="s3aH" x="76" y="272" text-anchor="middle">5</text>
+        <text class="s3aH" x="76" y="320" text-anchor="middle">6</text>
+        <text class="s3aH" x="76" y="360" text-anchor="middle">7</text>
+
+        <text class="s3aL" x="96" y="74">POST /parcels · Create a parcel</text>
+        <text class="s3aS" x="96" y="91">Registers a parcel for delivery to a locker.</text>
+        <text class="s3aL" x="96" y="128">Auth · X-Api-Key header (API-wide apiKey)</text>
+        <text class="s3aL" x="96" y="168">Path and query parameters · none on this call</text>
+        <text class="s3aL" x="96" y="207">Body · locker_id, recipient_phone, size</text>
+        <text class="s3aS" x="96" y="225">type, required, allowed values: small, medium, large, xl</text>
+        <text class="s3aL" x="96" y="263">Responses · 201, 400, 401, 409</text>
+        <text class="s3aL" x="96" y="281">meaning, cause and fix for each code</text>
+        <text class="s3aL" x="96" y="320">Request · a real call with every header</text>
+        <text class="s3aL" x="96" y="360">Response · the 201 body it returns</text>
+
+        <text class="s3aH" x="560" y="70">THE DEBUG READER'S EYE PATH</text>
+        <text class="s3aS" x="560" y="88">409 in hand, production waiting</text>
+
+        <text class="s3aH" x="576" y="134" text-anchor="middle">a</text>
+        <text class="s3aH" x="576" y="214" text-anchor="middle">b</text>
+        <text class="s3aH" x="576" y="294" text-anchor="middle">c</text>
+        <text class="s3aL" x="600" y="126">Jumps to 5: Responses</text>
+        <text class="s3aS" x="600" y="143">409 = no free slot of that size</text>
+        <text class="s3aL" x="600" y="206">Back to 4: Body</text>
+        <text class="s3aS" x="600" y="223">which size did I send?</text>
+        <text class="s3aL" x="600" y="286">Then 6: Request</text>
+        <text class="s3aS" x="600" y="303">is my call shaped like the sample?</text>
+        <text class="s3aA" x="560" y="348">Blocks 1 to 3: read once, on the first call,</text>
+        <text class="s3aA" x="560" y="364">skipped on every debug visit after that</text>
+
+        <text class="s3aN" x="30" y="412">Same seven blocks, same order, on every entry: the reader learns the shape once and finds block 5 anywhere.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the entry is laid out in spec order, but the debug reader enters at block 5, so block 5 has to finish the job on its own</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The seven things every endpoint entry owes<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>1 · What it does, in one line.</strong> A verb and an object, from the reader's side: "Registers a parcel for delivery to a locker." Not the history of the feature, not a sales line.</p>
+        <p><strong>2 · Auth.</strong> Which credential, and where it goes. Parcelpoint v1 declares one API-wide scheme, an API key sent as the <code>X-Api-Key</code> header, so every entry says so, even though it is "the same everywhere". The debug reader landed on this page from a search result and never saw your auth guide.</p>
+        <p><strong>3 · Path and query parameters.</strong> Name, type, required or not, and what it means. When there are none, as on <code>POST /parcels</code>, say "none" rather than leaving the heading out; an absent heading reads as "forgot", a "none" reads as "checked".</p>
+        <p><strong>4 · Body fields.</strong> One row per field: name, type, required, allowed values, one line of meaning. For Parcelpoint that is <code>locker_id</code>, <code>recipient_phone</code> and <code>size</code>, all required, size one of small, medium, large or xl.</p>
+        <p><strong>5 · Every response code, with its meaning.</strong> The success code and every error the call can actually return, each with what it means, the likely cause and the fix. Part 2 is about this block.</p>
+        <p><strong>6 and 7 · A real request and the real response.</strong> A call that would work if pasted with a real key, and the body it returns, so the reader can compare shape against shape. Constructed values are fine; pretend outputs are not, so say the values will differ.</p>
+        <p><strong>Why in this order.</strong> The Diataxis framework's advice for reference is to describe the machinery and mirror the structure of the product; for an API, the structure of the product is the spec, so the entry follows the spec's own order: operation, security, parameters, request body, responses. The four doc kinds in full are <a href="https://phoebefu6.github.io/learn-tech-writing-with-phoebe/courses/05-diataxis.html">Learn Tech Writing, session 5</a>, and general reference craft is <a href="https://phoebefu6.github.io/learn-tech-writing-with-phoebe/courses/06-reference-adrs-changelogs.html">session 6</a> there. This card is only what changes when the product is an API.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Generated vs hand-written reference: what generation cannot write<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Reference renderers that turn an OpenAPI document into pages exist in many flavours, and they are a good idea: blocks 2 to 7 come straight out of the spec, so they cannot drift from it. Generate those. But look at what the Parcelpoint v1.4.2 spec actually holds for the 409: the description "The locker has no free slot of that size." and a pointer to the Error schema. That is the meaning. Three things are missing, and no generator can invent them.</p>
+        <p><strong>The why.</strong> Why would a locker have no free slot when the caller's request was fine? The answer (other traffic into the same locker, slots held by reservations, whatever is true for this API) lives in someone's head on the API team, not in the schema. The page needs that sentence, confirmed by the people who run the service.</p>
+        <p><strong>The fix.</strong> "Try another size or another locker, and check free slots first with <code>GET /lockers/{locker_id}/status</code>." The spec knows that endpoint exists; it does not know it is the cure for this 409.</p>
+        <p><strong>The gotcha.</strong> The Parcel schema marks only <code>parcel_id</code>, <code>status</code> and <code>locker_id</code> as required. <code>pickup_code</code> and <code>created_at</code> are not. A generated table will print that faithfully, and the reader will still write <code>parcel.pickup_code</code> without a null check, because nothing told them when it can be absent. The page should say when, or say the spec does not promise it.</p>
+        <p>The working pattern: generate the skeleton from the spec, and keep the why, the fix and the gotcha in the spec's own <code>description</code> fields where you can, so they travel with the contract instead of living in a page that drifts. Session 4 adds the test that keeps the examples honest.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Seven blocks, in the wild.</strong> GitHub's REST reference entry for "Create an issue" carries the same skeleton: headers, path parameters, body parameters, a list of HTTP response status codes (201, 400, 403, 404, 410, 422 and 503) and code samples. The list is specific to that call. A 410 there means something about issues on that repository, not a lecture on HTTP. That is the bar: every code listed is one the caller can actually get, from this operation.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-2">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers errors with codes and fixes</span>
+      <h2>Every code gets a cause and a fix</h2>
+      <span class="tag concept">5 min live</span>
+    </div>
+    <p class="lede">A status code tells the caller that something happened. It does not tell them what to do next, and "what to do next" is the only thing the debug reader came for. So each code on the page gets three columns: what it means, the likely cause, and the fix, plus the shape of the error body the caller will be parsing. Here is <code>POST /parcels</code> worked through, including one code the v1 operation never lists.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A decision table for POST /parcels in the Constructed Parcelpoint example, v1.4.2. 201 Created: body valid and a slot of that size free; nothing to fix, store parcel_id and show pickup_code if present. 400 Bad request: a missing or misnamed field or a size outside the enum; compare the body with the field table and do not retry unchanged. 401 Unauthorized, hatched because the operation does not list it: key missing or wrong, coming from the API-wide security; send X-Api-Key with a valid key. 409 Conflict, highlighted: no free slot of that size although the body was fine; try another size or locker and check free_slots first. Every non-201 body is the Error schema with code and message, and v1 does not list the code values.">
+        <defs>
+          <filter id="s3bSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="61" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s3bHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s3bAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s3bH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s3bL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s3bS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s3bA { font: 700 11px Inter, sans-serif; fill: #1A4715; }
+          .s3bV { font: 800 18px Inter, sans-serif; fill: #12330E; }
+          .s3bK { font: 800 18px Inter, sans-serif; fill: #17231A; }
+          .s3bN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s3bH" x="30" y="26">POST /parcels: CODE, CAUSE, FIX</text>
+        <text class="s3bS" x="290" y="26">Constructed Parcelpoint example, v1.4.2</text>
+
+        <text class="s3bA" x="40" y="54">CODE</text>
+        <text class="s3bA" x="164" y="54">LIKELY CAUSE</text>
+        <text class="s3bA" x="504" y="54">FIX</text>
+
+        <g filter="url(#s3bSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- magnifier doodle -->
+          <circle cx="836" cy="20" r="8"/>
+          <path d="M842 26 L852 36"/>
+          <!-- row 201 -->
+          <rect x="30" y="64" width="96" height="56" rx="10" transform="rotate(-1 78 92)" fill="#EEF6E8"/>
+          <rect x="150" y="64" width="310" height="56" rx="10" transform="rotate(0.4 305 92)" fill="#FFFFFF"/>
+          <rect x="490" y="64" width="360" height="56" rx="10" transform="rotate(-0.3 670 92)" fill="#FFFFFF"/>
+          <path d="M128 92 L146 92" marker-end="url(#s3bAr)"/>
+          <path d="M462 92 L486 92" marker-end="url(#s3bAr)"/>
+          <!-- row 400 -->
+          <rect x="30" y="136" width="96" height="56" rx="10" transform="rotate(0.8 78 164)" fill="#FFFFFF"/>
+          <rect x="150" y="136" width="310" height="56" rx="10" transform="rotate(-0.4 305 164)" fill="#FFFFFF"/>
+          <rect x="490" y="136" width="360" height="56" rx="10" transform="rotate(0.3 670 164)" fill="#FFFFFF"/>
+          <path d="M128 164 L146 164" marker-end="url(#s3bAr)"/>
+          <path d="M462 164 L486 164" marker-end="url(#s3bAr)"/>
+          <!-- row 401 -->
+          <rect x="30" y="208" width="96" height="56" rx="10" transform="rotate(-0.8 78 236)" fill="url(#s3bHc)"/>
+          <rect x="150" y="208" width="310" height="56" rx="10" transform="rotate(0.3 305 236)" fill="#FFFFFF"/>
+          <rect x="490" y="208" width="360" height="56" rx="10" transform="rotate(-0.4 670 236)" fill="#FFFFFF"/>
+          <path d="M128 236 L146 236" marker-end="url(#s3bAr)"/>
+          <path d="M462 236 L486 236" marker-end="url(#s3bAr)"/>
+          <!-- row 409 -->
+          <rect x="30" y="280" width="96" height="56" rx="10" transform="rotate(1 78 308)" fill="#F2B33D"/>
+          <rect x="150" y="280" width="310" height="56" rx="10" transform="rotate(-0.3 305 308)" fill="#FDF3DC"/>
+          <rect x="490" y="280" width="360" height="56" rx="10" transform="rotate(0.4 670 308)" fill="#FDF3DC"/>
+          <path d="M128 308 L146 308" marker-end="url(#s3bAr)"/>
+          <path d="M462 308 L486 308" marker-end="url(#s3bAr)"/>
+        </g>
+
+        <text class="s3bV" x="78" y="94" text-anchor="middle">201</text>
+        <text class="s3bS" x="78" y="111" text-anchor="middle">Created</text>
+        <text class="s3bV" x="78" y="166" text-anchor="middle">400</text>
+        <text class="s3bS" x="78" y="183" text-anchor="middle">Bad request</text>
+        <text class="s3bV" x="78" y="238" text-anchor="middle">401</text>
+        <text class="s3bS" x="78" y="255" text-anchor="middle">Unauthorized</text>
+        <text class="s3bK" x="78" y="310" text-anchor="middle">409</text>
+        <text class="s3bL" x="78" y="327" text-anchor="middle">Conflict</text>
+
+        <text class="s3bL" x="164" y="88">Body valid, a slot of that size free</text>
+        <text class="s3bS" x="164" y="106">parcel registered with status created</text>
+        <text class="s3bL" x="164" y="160">Body invalid</text>
+        <text class="s3bS" x="164" y="178">missing or misnamed field, or a bad size</text>
+        <text class="s3bL" x="164" y="232">Key missing or wrong</text>
+        <text class="s3bS" x="164" y="250">API-wide security; not listed on this call</text>
+        <text class="s3bL" x="164" y="304">No free slot of that size</text>
+        <text class="s3bS" x="164" y="322">the body was fine; the locker is full</text>
+
+        <text class="s3bL" x="504" y="88">Nothing to fix</text>
+        <text class="s3bS" x="504" y="106">store parcel_id; show pickup_code if present</text>
+        <text class="s3bL" x="504" y="160">Compare the body with the field table</text>
+        <text class="s3bS" x="504" y="178">do not retry unchanged: it fails the same way</text>
+        <text class="s3bL" x="504" y="232">Send X-Api-Key with a valid key</text>
+        <text class="s3bS" x="504" y="250">do not retry unchanged</text>
+        <text class="s3bL" x="504" y="304">Try another size or locker</text>
+        <text class="s3bS" x="504" y="322">check free_slots: GET /lockers/{locker_id}/status</text>
+
+        <text class="s3bS" x="30" y="360">Every non-201 body is the Error schema: { code, message }. The v1 spec does not list the code values.</text>
+        <text class="s3bN" x="30" y="384">Hatched: a code the caller will meet that the operation does not list. Highlighted: tonight's debug case.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the meaning is in the spec; the cause and the fix are the page's own work, and the hatched row is a code nobody wrote down</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Code, cause, fix: three columns<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>Meaning</strong> is what the server decided. The spec already has it: "The locker has no free slot of that size." <strong>Cause</strong> is what the caller probably did, or what happened in the world, to get there: their request was fine, and the locker filled up. <strong>Fix</strong> is the next action, written as an instruction: try another size or locker, and check free slots first.</p>
+        <p>The cause column is what separates 400 from 409 for a tired reader. Both are "it did not work". One means "your request is wrong, change it"; the other means "your request is right, the world said no". A caller who cannot tell them apart will either retry a 400 forever or rewrite a body that was never broken.</p>
+        <p>Then the body. Every Parcelpoint error, whatever the code, comes back as the <code>Error</code> schema: an object with a <code>code</code> string and a <code>message</code> string, both required. The page shows that shape once per entry, because the caller's error handler parses it. One honest gap shows up straight away: v1 says <code>code</code> is a string but never lists which strings. A caller who wants to branch on "no free slot" versus "unknown locker" has nothing to branch on. The reference page should list the values, or say plainly that they are not yet documented and the caller should branch on the status code.</p>
+        <p>How the <code>message</code> itself should be worded, so a human can act on it, is its own craft, and it lives in <a href="https://phoebefu6.github.io/learn-tech-writing-with-phoebe/courses/91-error-messages.html">Learn Tech Writing, error messages</a>. Here we only make sure the page has a place for each code and says what to do.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Document the errors you return, not the ones HTTP defines<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>A tempting shortcut is a shared table of every HTTP status code, linked from every entry. It answers nothing. The reader with a 409 on <code>POST /parcels</code> does not need to learn that 409 means Conflict in general; they need to know what conflicted, here. List the codes this operation returns, and only those.</p>
+        <p>"Only those" cuts both ways. The v1.4.2 operation lists 201, 400 and 409. But the whole API sits behind <code>security: apiKey</code>, so a missing key on <code>POST /parcels</code> will get a refusal, and the operation never says which code. In the spec, <code>GET /lockers</code> lists a 401 with "Missing or invalid API key."; <code>POST /parcels</code> does not. The reference page should show 401 for this call, and the better fix is upstream: add the 401 response to the operation in the spec, so the generated page, the example test in session 4 and the bench in session 5 all see it.</p>
+        <p>The same audit question works on any endpoint you own: for each code your server can send from this operation, is it on the page? For each code on the page, can the server actually send it? A mismatch in either direction is a defect.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Machines read your error list too.</strong> oasdiff, an open-source tool that compares two OpenAPI documents, treats response codes differently by kind: removing a success status from an operation is reported as breaking, while removing or adding a non-success status is reported as info. That only works if the codes are written down per operation. An error the spec never lists is an error no diff will ever warn anyone about. Session 5 runs a checker built on the same idea.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-3">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers rate limits, pagination and idempotency</span>
+      <h2>Say it even when the answer is "none"</h2>
+      <span class="tag concept">4 min live</span>
+    </div>
+    <p class="lede">Three questions come up on every integration, usually at the worst moment: how fast may I call this, how do I get the next page, and if my request timed out, is it safe to send it again? A reference page that is silent on any of them is not neutral. The reader fills the silence with a guess, and the guess becomes production code. Parcelpoint v1 documents no rate limit and no way to make a retry safe; the page has to say so, and this is what is at stake on the retry.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 412" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two lanes showing one retry of POST /parcels. Top lane, a retry the server cannot recognise: the client sends POST /parcels, the server registers parcel A, the reply is lost to a timeout, the client retries the same body, the server registers parcel B; outcome two parcels and two pickup codes for one real package. Bottom lane, a retry the server can recognise: the client sends the request with a retry key, the server registers parcel A and keeps the key, the reply is lost, the client retries with the same key, the server sees the key and returns parcel A; outcome one parcel. The retry key label is constructed; Parcelpoint v1 documents no such key, so a caller must assume the top lane.">
+        <defs>
+          <filter id="s3cSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="67" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s3cHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s3cAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s3cH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s3cL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s3cS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s3cK { font: 400 11px Inter, sans-serif; fill: #17231A; }
+          .s3cR { font: 800 12px Inter, sans-serif; fill: #991B1B; }
+          .s3cG { font: 800 12px Inter, sans-serif; fill: #12330E; }
+          .s3cN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s3cH" x="30" y="26">ONE RETRY, TWO OUTCOMES</text>
+        <text class="s3cS" x="220" y="26">Constructed Parcelpoint example; "retry key" is a constructed label, not a v1 feature</text>
+
+        <g filter="url(#s3cSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- clock doodle -->
+          <circle cx="842" cy="21" r="10"/>
+          <path d="M842 21 L842 14"/>
+          <path d="M842 21 L848 24"/>
+          <!-- top lane -->
+          <rect x="24" y="44" width="832" height="150" rx="12" transform="rotate(-0.2 440 119)" fill="#FEF2F2" stroke="#FCA5A5"/>
+          <rect x="40" y="84" width="136" height="56" rx="10" transform="rotate(-1.2 108 112)" fill="#FFFFFF"/>
+          <rect x="208" y="84" width="136" height="56" rx="10" transform="rotate(0.9 276 112)" fill="#FFFFFF"/>
+          <rect x="376" y="84" width="136" height="56" rx="10" transform="rotate(-0.8 444 112)" fill="#FFFFFF" stroke-dasharray="6 5"/>
+          <rect x="544" y="84" width="136" height="56" rx="10" transform="rotate(1 612 112)" fill="#FFFFFF"/>
+          <rect x="712" y="84" width="136" height="56" rx="10" transform="rotate(-0.9 780 112)" fill="#FFFFFF" stroke="#991B1B"/>
+          <path d="M178 112 L204 112" marker-end="url(#s3cAr)"/>
+          <path d="M346 112 L372 112" marker-end="url(#s3cAr)"/>
+          <path d="M514 112 L540 112" marker-end="url(#s3cAr)"/>
+          <path d="M682 112 L708 112" marker-end="url(#s3cAr)"/>
+          <!-- bottom lane -->
+          <rect x="24" y="214" width="832" height="150" rx="12" transform="rotate(0.2 440 289)" fill="#EEF6E8" stroke="#1A4715"/>
+          <rect x="40" y="254" width="136" height="56" rx="10" transform="rotate(1 108 282)" fill="#FFFFFF"/>
+          <rect x="208" y="254" width="136" height="56" rx="10" transform="rotate(-0.9 276 282)" fill="#FFFFFF"/>
+          <rect x="376" y="254" width="136" height="56" rx="10" transform="rotate(0.8 444 282)" fill="#FFFFFF" stroke-dasharray="6 5"/>
+          <rect x="544" y="254" width="136" height="56" rx="10" transform="rotate(-1 612 282)" fill="#FFFFFF"/>
+          <rect x="712" y="254" width="136" height="56" rx="10" transform="rotate(1.1 780 282)" fill="#F2B33D"/>
+          <path d="M178 282 L204 282" marker-end="url(#s3cAr)"/>
+          <path d="M346 282 L372 282" marker-end="url(#s3cAr)"/>
+          <path d="M514 282 L540 282" marker-end="url(#s3cAr)"/>
+          <path d="M682 282 L708 282" marker-end="url(#s3cAr)"/>
+        </g>
+
+        <text class="s3cR" x="40" y="68">A retry the server cannot recognise</text>
+        <text class="s3cL" x="108" y="108" text-anchor="middle">Client</text>
+        <text class="s3cS" x="108" y="126" text-anchor="middle">POST /parcels</text>
+        <text class="s3cL" x="276" y="108" text-anchor="middle">Server</text>
+        <text class="s3cS" x="276" y="126" text-anchor="middle">registers parcel A</text>
+        <text class="s3cL" x="444" y="108" text-anchor="middle">Network</text>
+        <text class="s3cS" x="444" y="126" text-anchor="middle">timeout, no reply</text>
+        <text class="s3cL" x="612" y="108" text-anchor="middle">Client</text>
+        <text class="s3cS" x="612" y="126" text-anchor="middle">retries, same body</text>
+        <text class="s3cL" x="780" y="108" text-anchor="middle">Server</text>
+        <text class="s3cS" x="780" y="126" text-anchor="middle">registers parcel B</text>
+        <text class="s3cR" x="40" y="174">Outcome: two parcels, two pickup codes, one real package</text>
+
+        <text class="s3cG" x="40" y="238">A retry the server can recognise</text>
+        <text class="s3cL" x="108" y="278" text-anchor="middle">Client</text>
+        <text class="s3cS" x="108" y="296" text-anchor="middle">POST + retry key</text>
+        <text class="s3cL" x="276" y="278" text-anchor="middle">Server</text>
+        <text class="s3cS" x="276" y="296" text-anchor="middle">parcel A, key kept</text>
+        <text class="s3cL" x="444" y="278" text-anchor="middle">Network</text>
+        <text class="s3cS" x="444" y="296" text-anchor="middle">timeout, no reply</text>
+        <text class="s3cL" x="612" y="278" text-anchor="middle">Client</text>
+        <text class="s3cS" x="612" y="296" text-anchor="middle">retries, same key</text>
+        <text class="s3cL" x="780" y="278" text-anchor="middle">Server</text>
+        <text class="s3cK" x="780" y="296" text-anchor="middle">key seen: parcel A</text>
+        <text class="s3cG" x="40" y="344">Outcome: one parcel, and the same parcel_id comes back</text>
+
+        <text class="s3cN" x="30" y="396">The page must say which lane the caller is in. v1 documents no retry key, so callers must assume the top one.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - a timeout does not tell the client whether the server acted, so only the page can tell them whether sending again is safe</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Pagination on the page that paginates<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><code>POST /parcels</code> returns one object, so its entry has no pagination section, and should not grow one. Pagination belongs on the entry of the operation that pages, in the parameters and response blocks, where the reader is looking when they need it. A separate "Pagination" guide is a fine how-to; it is not a substitute.</p>
+        <p><strong>v1, page numbers.</strong> <code>GET /lockers</code> takes <code>page</code> (starting at 1) and <code>per_page</code> (up to 100), and every response carries <code>page</code> and <code>total_pages</code> beside <code>data</code>. The entry should say what the default page size is, or that the spec does not set one, and that you stop when <code>page</code> equals <code>total_pages</code>.</p>
+        <p><strong>v2, cursors.</strong> In the v2 document the same operation takes <code>cursor</code> and <code>limit</code> (up to 100) and returns <code>next_cursor</code>, a string or null. The entry has to say the two things a cursor reader always gets wrong: the cursor is opaque, so pass it back exactly as received, and a null <code>next_cursor</code> means the last page. There is no <code>total_pages</code> any more, which is exactly why the Partner analytics export, a constructed consumer, breaks in session 5.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Idempotency: say whether a retry is safe<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>An operation is idempotent when sending it twice has the same effect as sending it once. Reads are, by nature. <code>DELETE /reservations/{reservation_id}</code> is close: the second call finds nothing to delete (in the v2 document its description says plainly that cancelling twice returns 404). <code>POST /parcels</code> is not: each call registers a parcel.</p>
+        <p>The trouble is the timeout. When the client gives up waiting, it cannot know whether the server never got the request, or got it, registered parcel A and lost the reply. Retrying is correct in the first case and creates a duplicate in the second. Some APIs let the client attach a value the server remembers, so a repeat of the same value returns the first result instead of acting again; the figure calls it a "retry key", a constructed label, because the name and the mechanism vary from API to API.</p>
+        <p>Parcelpoint v1 documents no such mechanism. So the honest page says three things: retrying <code>POST /parcels</code> after a timeout may register a second parcel; before retrying, check whether the first one exists; and v1 offers no listing of your parcels to check with (a <code>GET /parcels</code> list only arrives in v1.5 and v2). That last sentence is uncomfortable, and it is the most useful line on the page. It also belongs in a ticket for the API team.</p>
+        <p><strong>Rate limits, the same way.</strong> v1.4.2 documents no rate limit and no rate-limit response. Do not invent a number to fill the slot. Write "No rate limit is documented for v1" and raise it, because a documented "none" is a promise the team can be held to, and an undocumented one is a guess every caller makes differently.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Depth on request.</strong> Stripe's API reference collapses nested parameters by default and expands them when the reader asks. The top level of an entry stays short enough to scan for the one field you came for, and the full depth is one click away. It is the same principle as the seven blocks: a fixed, scannable shape first, detail where the reader chooses to go.</p>
+    </div>
+  </section>
+
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Build-along</span>
+      <h2>Rewrite the POST /parcels entry from the spec</h2>
+      <span class="tag demo">★ 22 min · everyone builds</span>
+    </div>
+    <p class="lede">Parcelpoint's v1 reference entry for <code>POST /parcels</code> is one line and a curl command (Constructed Parcelpoint example). You have the v1.4.2 spec from session 2. Write the full entry in six steps, each one filling a block, then score it. Everything happens in your editor and this page; nothing calls a server.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 318" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Before and after. On the left, the v1 reference entry for POST /parcels: a heading, the line Create a parcel, and a curl command, with no auth line, no field table, no response codes and no sample reply, so a reader with a 409 learns nothing. On the right, the rewritten entry in six parts: what it does in one line, auth with X-Api-Key, a body table with type, required and allowed values, the codes 201, 400, 401 and 409 with cause and fix, a request and the 201 it returns, and a gaps section on rate limits and safe retries.">
+        <defs>
+          <filter id="s3dSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="73" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s3dHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s3dAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s3dL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s3dS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s3dA { font: 700 11px Inter, sans-serif; fill: #1A4715; }
+          .s3dR { font: 800 12px Inter, sans-serif; fill: #991B1B; }
+          .s3dG { font: 800 12px Inter, sans-serif; fill: #12330E; }
+          .s3dN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <g filter="url(#s3dSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="40" y="40" width="330" height="230" rx="12" transform="rotate(-0.4 205 155)" fill="#FEF2F2" stroke="#FCA5A5"/>
+          <rect x="510" y="40" width="330" height="230" rx="12" transform="rotate(0.4 675 155)" fill="#EEF6E8" stroke="#1A4715"/>
+          <path d="M384 158 L496 158" marker-end="url(#s3dAr)"/>
+          <!-- tick doodle -->
+          <path d="M800 62 L808 70 L822 54"/>
+        </g>
+
+        <text class="s3dA" x="440" y="146" text-anchor="middle">rewrite</text>
+
+        <text class="s3dR" x="58" y="66">Before · the v1 entry</text>
+        <text class="s3dL" x="58" y="96">POST /parcels</text>
+        <text class="s3dS" x="58" y="116">Create a parcel.</text>
+        <text class="s3dS" x="58" y="140">curl -X POST .../parcels -d '{...}'</text>
+        <text class="s3dS" x="58" y="170">no auth line, no field table</text>
+        <text class="s3dS" x="58" y="190">no response codes, no sample reply</text>
+        <text class="s3dR" x="58" y="226">a 409 reader learns nothing here</text>
+
+        <text class="s3dG" x="528" y="66">After · the full entry</text>
+        <text class="s3dL" x="528" y="94">1 What it does, in one line</text>
+        <text class="s3dL" x="528" y="118">2 Auth: X-Api-Key header</text>
+        <text class="s3dL" x="528" y="142">3 Body: type, required, values</text>
+        <text class="s3dL" x="528" y="166">4 201, 400, 401, 409: cause, fix</text>
+        <text class="s3dL" x="528" y="190">5 A request and the 201 it returns</text>
+        <text class="s3dL" x="528" y="214">6 Gaps: rate limits, safe retries</text>
+        <text class="s3dS" x="528" y="246">every line from the spec, or says it is silent</text>
+
+        <text class="s3dN" x="30" y="300">Nothing on the right is invented: each line is in the v1.4.2 spec, or states plainly what the spec leaves out.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the rewrite adds no new facts about the API; it adds the facts the spec already had, plus an honest list of what it does not</figcaption>
+    </figure>
+
+    <div class="steps">
+      <div class="step">
+        <p><strong>Write the one-line summary and the auth block.</strong> Start from the operation's own <code>summary</code> and <code>description</code> in the spec, and the API-wide <code>security</code>. One sentence for what it does, then the server, then where the key goes. Do not explain what a parcel is; the evaluate reader has a different page.</p>
+        <div class="prompt-box good"><span class="label">★ Step 1 · summary and auth (Constructed Parcelpoint example)</span>POST /parcels
+Create a parcel
+
+Registers a parcel for delivery to a locker.
+
+Server   https://api.parcelpoint.example/v1
+Auth     API key in the X-Api-Key header (required on every call)
+Path and query parameters   none</div>
+      </div>
+      <div class="step">
+        <p><strong>Write the body field table.</strong> Copy names, types, required flags and enums from <code>ParcelCreate</code> exactly. Add one line of meaning per field, and one gotcha where you know one. Note that the spec gives <code>recipient_phone</code> no format: say so instead of guessing one.</p>
+        <div class="prompt-box good"><span class="label">★ Step 2 · request body, application/json, required</span>Field            Type     Required   Allowed values / meaning
+locker_id        string   yes        The locker to deliver to, e.g. LK-0042.
+                                     Find ids with GET /lockers.
+recipient_phone  string   yes        The recipient's phone number. The v1 spec
+                                     sets no format; ask before you rely on one.
+size             string   yes        One of: small, medium, large, xl.
+                                     Lower case. "M" or "Medium" returns 400.</div>
+      </div>
+      <div class="step">
+        <p><strong>Write the responses with code, cause and fix.</strong> One row per code the caller can get from this call: the three the operation lists, plus 401 from the API-wide security. Show the error body shape once. Where the spec is silent on the <code>code</code> values, say so.</p>
+        <div class="prompt-box good"><span class="label">★ Step 3 · responses</span>201  Created       The parcel is registered, status "created".
+                   Store parcel_id. pickup_code is not marked required
+                   in the schema: show it when present.
+400  Bad request   A field is missing or misnamed, or size is not one
+                   of the four values. Compare your body with the table
+                   above. Retrying unchanged fails the same way.
+401  Unauthorized  X-Api-Key is missing or wrong. Not listed on this
+                   operation in v1.4.2; it comes from the API-wide
+                   security. Send a valid key.
+409  Conflict      The body was fine; the locker has no free slot of
+                   that size. Try another size or locker. Check first
+                   with GET /lockers/{locker_id}/status (free_slots).
+
+Every error body:  { "code": string, "message": string }
+The v1 spec does not list the values of "code". Branch on the
+status code, not on "code", until they are documented.</div>
+      </div>
+      <div class="step">
+        <p><strong>Write a request and the response it returns.</strong> Every header present, every field name and enum value matching step 2. The values are constructed; label them so nobody mistakes them for captured output.</p>
+        <div class="prompt-box good"><span class="label">★ Step 4 · request and response (constructed values: your values will differ)</span>curl -X POST https://api.parcelpoint.example/v1/parcels \
+  -H "X-Api-Key: $PARCELPOINT_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"locker_id": "LK-0042", "recipient_phone": "+1 555 0100", "size": "medium"}'
+
+HTTP/1.1 201 Created
+{
+  "parcel_id": "PC-000123",
+  "status": "created",
+  "locker_id": "LK-0042",
+  "pickup_code": "000000",
+  "created_at": "2026-11-16T09:30:00Z"
+}</div>
+      </div>
+      <div class="step">
+        <p><strong>Write the gaps section.</strong> Name every question the reader will have that v1.4.2 does not answer, and say what to do meanwhile. This is the section most teams skip, and the one that saves the most support tickets.</p>
+        <div class="prompt-box good"><span class="label">★ Step 5 · what this endpoint does not promise (v1.4.2)</span>Rate limits    None documented for v1. No rate-limit response is
+               listed. Do not assume unlimited; ask before bulk loads.
+
+Retries        Not safe after a timeout. v1 offers no way to mark a
+               request as a repeat, so a retry may register a second
+               parcel. v1 also has no parcel listing to check with.
+               If a call times out, ask the Parcelpoint team how to
+               check for a duplicate before you retry.
+
+Error codes    The "code" field's values are not documented yet.
+
+Changes        This entry describes v1.4.2. See the changelog before
+               upgrading.</div>
+      </div>
+      <div class="step">
+        <p><strong>Score it.</strong> Grade the original one-line entry on the scorecard below, then your rewrite. Save both totals at the top of the entry file: that file is piece three of Parcelpoint's docs kit, and session 4 writes the test that keeps step 4 true.</p>
+      </div>
+    </div>
+
+    <div class="scorecard" data-title="Reference entry scorecard: six rows" data-foot="Grade the v1 entry first, then your rewrite. A row at 0 is a question the debug reader has to ask someone.">
+      <div class="sc-row"><div class="sc-q">What the call does, and its auth, are on the entry itself
+        <em>One line of purpose, the server, and where the key goes, even if every entry repeats it.</em></div></div>
+      <div class="sc-row"><div class="sc-q">Every field has type, required and allowed values
+        <em>Copied from the spec exactly; where the spec is silent (a phone format), the page says so.</em></div></div>
+      <div class="sc-row"><div class="sc-q">Every code the call can return is listed, with cause and fix
+        <em>Including codes the operation forgot, such as 401 from API-wide security. None that it cannot return.</em></div></div>
+      <div class="sc-row"><div class="sc-q">The error body shape is shown
+        <em>Error with code and message, and whether the code values are documented.</em></div></div>
+      <div class="sc-row"><div class="sc-q">A request that matches the spec, and the response it returns
+        <em>Every header present; constructed values labelled as constructed.</em></div></div>
+      <div class="sc-row"><div class="sc-q">Rate limits and retry safety are stated, even as "none"
+        <em>A silence scores 0. "None documented, ask before bulk loads" scores 2.</em></div></div>
+    </div>
+
+    <div class="callout tip">
+      <p><strong>Fix the spec, not just the page.</strong> Two of tonight's gaps, the missing 401 and the undocumented error codes, are spec defects. Write them on the page today so readers are not misled, and open a change to the spec so the generated reference, the session 4 test and the session 5 diff all see the same truth.</p>
+    </div>
+  </section>
+
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Before session 4</h2>
+      <span class="tag exercise">30 min</span>
+    </div>
+    <ol>
+      <li><strong>Score one endpoint you own</strong> on the six-row scorecard. Write the total and the lowest row on a sticky note; that row is your next docs change.</li>
+      <li><strong>Reconcile codes both ways.</strong> For that endpoint, list every status code the server can send and every code the page lists. Mark each code that appears on only one list.</li>
+      <li><strong>Write the gaps section</strong> for that endpoint: rate limits, retry safety, pagination if it pages, error code values. Use "none documented" wherever that is the truth.</li>
+      <li><strong>Read a public reference entry as a debug reader.</strong> Pick any call on GitHub's REST reference, pick one error code, and time how long it takes to find its meaning and its fix. Bring the time to session 4.</li>
+    </ol>
+  </section>
+
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions</h2>
+    </div>
+    <p>Clear all three and session 3 gets stamped in your passport.</p>
+
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · A partner's checkout gets a 409 from <code>POST /parcels</code>. Where should they find the answer, and what should it say?</p>
+      <button class="qopt" type="button">A · A shared "HTTP status codes" page, which explains that 409 means Conflict</button>
+      <button class="qopt" type="button">B · The <code>POST /parcels</code> reference entry: 409 means the locker has no free slot of that size, the body was fine, and the fix is another size or locker, checked first with the status endpoint</button>
+      <button class="qopt" type="button">C · The quickstart, which shows a call that returns 201</button>
+      <button class="qopt" type="button">D · The changelog, in case 409 is new in this version</button>
+      <p class="qwhy">The debug reader needs what conflicted here and what to do next, on the page for the call they made. A generic HTTP table explains the word Conflict and nothing else; the quickstart is for a different reader.</p>
+    </div>
+
+    <div class="quiz-q" data-answer="3">
+      <p class="qtext">2 · The v1 spec already gives each <code>POST /parcels</code> response a one-line description. Why does the reference page still need a cause and a fix for each code?</p>
+      <button class="qopt" type="button">A · Because generated pages are always wrong</button>
+      <button class="qopt" type="button">B · Because the spec does not allow descriptions on responses</button>
+      <button class="qopt" type="button">C · Because longer entries rank better in search</button>
+      <button class="qopt" type="button">D · Because the description says what the server decided, and the reader needs to know whether to change the request or try somewhere else; 400 and 409 both mean "no", but one says "fix your body" and the other says "your body was fine"</button>
+      <p class="qwhy">Meaning, cause and fix answer three different questions. Without the cause column a caller retries a 400 forever or rewrites a body that was never broken. Generated pages are fine for the skeleton; the cause and fix are what a human adds, ideally in the spec's own description fields.</p>
+    </div>
+
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · A <code>POST /parcels</code> call times out. Parcelpoint v1 documents no way to mark a request as a repeat. What should the reference page tell the caller?</p>
+      <button class="qopt" type="button">A · That a retry after a timeout may register a second parcel, because the server may have acted before the reply was lost, and what to do instead before retrying</button>
+      <button class="qopt" type="button">B · Nothing; retry behaviour is an implementation detail</button>
+      <button class="qopt" type="button">C · That retries are always safe because POST is idempotent</button>
+      <button class="qopt" type="button">D · A recommended retry interval and rate limit, so callers do not overload the API</button>
+      <p class="qwhy">A timeout does not tell the client whether the server acted. POST is not idempotent by nature, and v1 offers no mechanism to make it so, so the honest page says a retry is unsafe. Inventing a rate limit or interval the API never documented would be a new promise nobody made.</p>
+    </div>
+
+    <p class="quiz-score"></p>
+  </section>
+
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Sources covered</span>
+      <h2>What this session teaches, and where it came from</h2>
+    </div>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Diataxis, reference</span><span class="note">Diataxis, "Reference", diataxis.fr/reference, read at source: reference mirrors the structure of the product. One-card recap; the framework is tech-writing session 5</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">GitHub REST reference structure</span><span class="note">GitHub Docs, REST reference "Issues" (Create an issue entry): headers, path and body parameters, status codes 201, 400, 403, 404, 410, 422, 503, code samples; structure only</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Stripe reference structure</span><span class="note">Stripe Docs, "Versioning" and "Changelog", docs.stripe.com: nested parameters collapsed by default; structure only, at the time of writing (November 2026)</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">oasdiff status-code rules</span><span class="note">oasdiff, "Breaking changes" rule list and check pages, oasdiff.com/docs/breaking-changes: success status removed is breaking, non-success status changes are info</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Rate limits, pagination, idempotency</span><span class="note">Taught as what a reference page owes the reader; no vendor numbers; the retry key in the figure is a constructed label</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Parcelpoint v1.4.2 and v2</span><span class="note">Constructed example; fields, codes and pagination quoted from the documents the session 5 bench loads</span></div>
+    </div>
+    <p class="mono" style="margin-top:14px">Every fact on this page, and its verification tier, is recorded in the course's source map.</p>
+  </section>
+
+  <section class="cheat" id="cheatsheet">
+    <h3>Session 3 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Seven blocks, spec order</b><span>Purpose, auth, parameters, body, responses, request, response. Same place on every entry.</span></div>
+      <div class="cheat-item"><b>Write "none"</b><span>No parameters, no rate limit, no retry key: say so. A silence is a guess the reader makes for you.</span></div>
+      <div class="cheat-item"><b>Code, cause, fix</b><span>Meaning from the spec; the cause and the next action are the page's own work.</span></div>
+      <div class="cheat-item"><b>Errors you return</b><span>List this operation's codes, all of them, including the 401 the security implies. No generic HTTP table.</span></div>
+      <div class="cheat-item"><b>Pagination where it pages</b><span>Page and total_pages in v1, an opaque cursor and a null next_cursor in v2, on that operation's entry.</span></div>
+      <div class="cheat-item"><b>Is a retry safe?</b><span>A timeout hides whether the server acted. Say whether a repeat is recognised; for v1, it is not.</span></div>
+    </div>
+  </section>
+
+  <div class="callout next">
+    <span class="nx-pill">Next session</span>
+    <p>Step 4 tonight was a request and a response you wrote by hand. The day someone renames a field, that example quietly starts returning 400. Session 4 writes Parcelpoint's quickstart and an example test that fails the moment the example stops matching the spec, so the sample on this page stays true without anyone remembering to check it.</p>
+  </div>
+
+  <footer class="pagefoot">
+    <span>Session 3 of 6 · learn-api-docs-changelogs-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="02-spec-first-openapi.html">← Prev: Spec-first in OpenAPI 3.1</a> &nbsp;·&nbsp; <a href="04-examples-that-run.html">Next: Examples that run →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

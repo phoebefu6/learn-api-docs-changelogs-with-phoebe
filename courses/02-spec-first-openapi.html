@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- social:start -->
+<meta name="description" content="Session 2 of 6. Write the contract down. The shape of an OpenAPI 3.1 document, components and $ref as the single source, what changed from 3.0, the honest spec-first versus code-first argument, and Parcelpoint's /lockers and /parcels written in YAML.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Learn with Phoebe">
+<meta property="og:title" content="Spec-first in OpenAPI 3.1 - learn api docs changelogs with phoebe">
+<meta property="og:description" content="Session 2 of 6. Root, paths and operations in the order a reader meets them, $ref as the docs kit's single source, and a spec you write yourself in the page.">
+<meta property="og:url" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/courses/02-spec-first-openapi.html">
+<meta property="og:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Spec-first in OpenAPI 3.1 - learn api docs changelogs with phoebe">
+<meta name="twitter:description" content="Session 2 of 6. The OpenAPI 3.1 document's shape, $ref reuse, 3.0 to 3.1 changes, and spec-first versus code-first.">
+<meta name="twitter:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<!-- social:end -->
+<title>Session 2 · Spec-first in OpenAPI 3.1 - learn api docs changelogs with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-api-docs-changelogs-with-phoebe</a> / Session 2 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn API Docs &amp; Changelogs with Phoebe · Session 2 of 6</div>
+    <h1>Spec-first: write the contract <span class="accent">in OpenAPI 3.1</span></h1>
+    <p class="sub">Last session's audit found an example that disagreed with the API it was documenting, and nobody could say which one was right because the contract lived nowhere except in people's heads. Tonight we write it down. We walk an OpenAPI 3.1 document in the order a reader meets it, make $ref the reason one edit reaches every page, mark the four 3.0 habits that no longer hold, and hear both sides of the spec-first versus code-first argument. Then you write the Constructed Parcelpoint example's <code>/lockers</code> and <code>/parcels</code> yourself.</p>
+    <div class="chip-row">
+      <span class="chip level">🟢 Foundations</span>
+      <span class="chip audience">Engineers who ship APIs, platform and DX teams, tech writers</span>
+      <span class="chip audience">YAML in the page, no tools to install</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Document shape, $ref, spec-first vs code-first</span>
+      <span class="a3" style="flex:5">18-40 · Build-along: Parcelpoint in OpenAPI 3.1</span>
+      <span class="a4" style="flex:1">40-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where we start</h2>
+    </div>
+    <p class="lede">At the end of session 1 the Parcelpoint landing page told readers to send <code>"locker"</code>, <code>"phone"</code> and a size of <code>"M"</code>, while the API wanted <code>locker_id</code>, <code>recipient_phone</code> and <code>medium</code>. That argument can only be settled by a document both sides agree is the truth. An OpenAPI description is that document: one machine-readable file that says what every path takes and returns, which the reference, the examples and the changelog can all be generated from or checked against. Tonight it gets written, for real, for the Constructed Parcelpoint example.</p>
+
+    <div class="legend">
+      <span class="pill">🎫 Clear all three quiz questions to stamp your passport</span>
+      <span class="pill">Live = presented in the 45 minutes</span>
+      <span class="pill">Self-study = the full depth, after class</span>
+      <span class="pill">★ Build-along = do it yourself, in the page</span>
+    </div>
+
+    <div class="callout win">
+      <p><strong>★ What you walk out with tonight.</strong> A working OpenAPI 3.1 description of Parcelpoint v1.4.2's <code>GET /lockers</code> and <code>POST /parcels</code> that you wrote line by line, a JSON copy ready for the session 5 bench, a short list of 3.0 habits to hunt for in older specs, and a fair way to explain spec-first and code-first to a team that has already picked one.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-1">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers the document's shape: root, paths, operations, parameters</span>
+      <h2>A document a reader walks from the top</h2>
+      <span class="tag concept">6 min live</span>
+    </div>
+    <p class="lede">An OpenAPI document looks long, but it is a tree with a small number of branches, and it reads in the same order every time: the root says what this API is and where it lives, <code>paths</code> lists the URLs, each path holds operations keyed by HTTP method, and each operation says what goes in and what comes out. Learn the order once and every OpenAPI file you open afterwards, yours or a vendor's, reads the same way.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 530" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The constructed Parcelpoint v1.4.2 OpenAPI document drawn as a tree. The root has six fields used in v1: openapi 3.1.0 and info, both required, then servers, security, paths with 8 paths, and components. Under paths, /parcels holds a post operation, createParcel. The post operation has a requestBody and responses 201 Parcel, 400 Error and 409 Error. The requestBody does not hold the schema: a $ref jumps across to components.schemas.ParcelCreate, which is highlighted.">
+        <defs>
+          <filter id="s2aSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="52" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s2aHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s2aAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s2aH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s2aL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s2aS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s2aB { font: 800 11px Inter, sans-serif; fill: #6B4700; }
+          .s2aW { font: 800 12px Inter, sans-serif; fill: #FFFFFF; }
+          .s2aN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s2aH" x="30" y="26">THE PARCELPOINT V1 DOCUMENT AS A TREE</text>
+        <text class="s2aS" x="330" y="26">Constructed Parcelpoint example, v1.4.2, OpenAPI 3.1.0</text>
+
+        <g filter="url(#s2aSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="30" y="44" width="170" height="50" rx="10" transform="rotate(-0.6 115 69)" fill="#1A4715"/>
+          <path d="M115 94 L115 112"/>
+          <path d="M92 112 L768 112"/>
+          <path d="M92 112 L92 130"/>
+          <path d="M227 112 L227 130"/>
+          <path d="M362 112 L362 130"/>
+          <path d="M497 112 L497 130"/>
+          <path d="M632 112 L632 130"/>
+          <path d="M768 112 L768 130"/>
+          <rect x="30" y="130" width="125" height="50" rx="9" transform="rotate(-0.8 92 155)" fill="#EEF6E8"/>
+          <rect x="165" y="130" width="125" height="50" rx="9" transform="rotate(0.7 227 155)" fill="#EEF6E8"/>
+          <rect x="300" y="130" width="125" height="50" rx="9" transform="rotate(-0.5 362 155)" fill="#FFFFFF"/>
+          <rect x="435" y="130" width="125" height="50" rx="9" transform="rotate(0.6 497 155)" fill="#FFFFFF"/>
+          <rect x="570" y="130" width="125" height="50" rx="9" transform="rotate(-0.7 632 155)" fill="#FFFFFF"/>
+          <rect x="705" y="130" width="125" height="50" rx="9" transform="rotate(0.5 767 155)" fill="#FFFFFF"/>
+          <path d="M632 180 L587 213"/>
+          <rect x="520" y="215" width="130" height="40" rx="9" transform="rotate(0.8 585 235)" fill="#FFFFFF"/>
+          <path d="M585 255 L585 278"/>
+          <rect x="520" y="280" width="130" height="46" rx="9" transform="rotate(-0.6 585 303)" fill="#FFFFFF"/>
+          <path d="M767 180 L779 213"/>
+          <rect x="700" y="215" width="160" height="46" rx="9" transform="rotate(-0.5 780 238)" fill="url(#s2aHc)"/>
+          <path d="M780 261 L780 358"/>
+          <path d="M570 326 L546 358"/>
+          <path d="M550 326 L367 358"/>
+          <rect x="470" y="360" width="150" height="46" rx="9" transform="rotate(0.6 545 383)" fill="#FFFFFF"/>
+          <rect x="290" y="360" width="150" height="46" rx="9" transform="rotate(-0.7 365 383)" fill="#FFFFFF"/>
+          <rect x="700" y="360" width="160" height="46" rx="9" transform="rotate(0.9 780 383)" fill="#F2B33D"/>
+          <path d="M622 390 L694 390" stroke-width="2.6" marker-end="url(#s2aAr)"/>
+          <path d="M365 406 L267 434"/>
+          <path d="M365 406 L365 434"/>
+          <path d="M365 406 L463 434"/>
+          <rect x="220" y="436" width="90" height="40" rx="8" transform="rotate(-1.2 265 456)" fill="#EEF6E8"/>
+          <rect x="320" y="436" width="90" height="40" rx="8" transform="rotate(0.9 365 456)" fill="#FFFFFF"/>
+          <rect x="420" y="436" width="90" height="40" rx="8" transform="rotate(-0.8 465 456)" fill="#FFFFFF"/>
+        </g>
+
+        <text class="s2aW" x="46" y="66">the document</text>
+        <text class="s2aW" x="46" y="84">one file, one tree</text>
+
+        <text class="s2aL" x="92" y="151" text-anchor="middle">openapi</text>
+        <text class="s2aS" x="92" y="168" text-anchor="middle">3.1.0</text>
+        <text class="s2aL" x="227" y="151" text-anchor="middle">info</text>
+        <text class="s2aS" x="227" y="168" text-anchor="middle">title, version</text>
+        <text class="s2aL" x="362" y="151" text-anchor="middle">servers</text>
+        <text class="s2aS" x="362" y="168" text-anchor="middle">base URL with /v1</text>
+        <text class="s2aL" x="497" y="151" text-anchor="middle">security</text>
+        <text class="s2aS" x="497" y="168" text-anchor="middle">apiKey</text>
+        <text class="s2aL" x="632" y="151" text-anchor="middle">paths</text>
+        <text class="s2aS" x="632" y="168" text-anchor="middle">8 paths in v1</text>
+        <text class="s2aL" x="767" y="151" text-anchor="middle">components</text>
+        <text class="s2aS" x="767" y="168" text-anchor="middle">schemas, keys</text>
+
+        <text class="s2aB" x="92" y="198" text-anchor="middle">REQUIRED</text>
+        <text class="s2aB" x="227" y="198" text-anchor="middle">REQUIRED</text>
+
+        <text class="s2aS" x="30" y="236">openapi and info are the only</text>
+        <text class="s2aS" x="30" y="252">required root fields. At least</text>
+        <text class="s2aS" x="30" y="268">one of paths, components or</text>
+        <text class="s2aS" x="30" y="284">webhooks must be there too.</text>
+        <text class="s2aS" x="30" y="312">Also allowed, unused in v1:</text>
+        <text class="s2aS" x="30" y="328">jsonSchemaDialect, webhooks,</text>
+        <text class="s2aS" x="30" y="344">tags, externalDocs</text>
+
+        <text class="s2aL" x="585" y="240" text-anchor="middle">/parcels</text>
+        <text class="s2aL" x="585" y="299" text-anchor="middle">post</text>
+        <text class="s2aS" x="585" y="316" text-anchor="middle">createParcel</text>
+        <text class="s2aL" x="780" y="234" text-anchor="middle">schemas</text>
+        <text class="s2aS" x="780" y="251" text-anchor="middle">ParcelCreate + 4 more</text>
+
+        <text class="s2aL" x="545" y="379" text-anchor="middle">requestBody</text>
+        <text class="s2aS" x="545" y="396" text-anchor="middle">required: true</text>
+        <text class="s2aL" x="365" y="379" text-anchor="middle">responses</text>
+        <text class="s2aS" x="365" y="396" text-anchor="middle">three codes</text>
+        <text class="s2aB" x="658" y="378" text-anchor="middle">$ref</text>
+        <text class="s2aL" x="780" y="379" text-anchor="middle">ParcelCreate</text>
+        <text class="s2aL" x="780" y="396" text-anchor="middle">3 required fields</text>
+
+        <text class="s2aL" x="265" y="453" text-anchor="middle">201</text>
+        <text class="s2aS" x="265" y="468" text-anchor="middle">Parcel</text>
+        <text class="s2aL" x="365" y="453" text-anchor="middle">400</text>
+        <text class="s2aS" x="365" y="468" text-anchor="middle">Error</text>
+        <text class="s2aL" x="465" y="453" text-anchor="middle">409</text>
+        <text class="s2aS" x="465" y="468" text-anchor="middle">Error</text>
+
+        <text class="s2aN" x="30" y="506">The $ref is the jump: the operation does not hold the schema, it points at the one copy in components.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - read top down, root to path to operation, and notice the request body only points at its schema</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Root, paths, operations, in the order a reader meets them<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>The root.</strong> The OpenAPI Specification 3.1 lists ten root fields: <code>openapi</code>, <code>info</code>, <code>jsonSchemaDialect</code>, <code>servers</code>, <code>paths</code>, <code>webhooks</code>, <code>components</code>, <code>security</code>, <code>tags</code> and <code>externalDocs</code>. Only two are required, <code>openapi</code> (the spec version, here 3.1.0) and <code>info</code> (title and the API's own version, here 1.4.2), and the document must also contain at least one of <code>paths</code>, <code>components</code> or <code>webhooks</code>. Note the two versions: <code>openapi</code> is the version of the format, <code>info.version</code> is the version of your API. Session 5 bumps the second one, never the first.</p>
+        <p><strong>Paths.</strong> Each key is a URL template relative to the server, such as <code>/parcels</code> or <code>/lockers/{locker_id}</code>. Under each path sit the operations, keyed by lowercase method: <code>get</code>, <code>post</code>, <code>delete</code> and so on. Parcelpoint v1 has eight paths and one operation on each.</p>
+        <p><strong>Operations.</strong> An operation is the thing a reference page is about. Its fields include <code>operationId</code>, <code>parameters</code>, <code>requestBody</code>, <code>responses</code>, <code>callbacks</code>, <code>deprecated</code> (false unless you say otherwise), <code>security</code> and <code>servers</code>. Responses are keyed by status code, and each one says what body comes back.</p>
+        <p><strong>Parameters.</strong> Every parameter states where it lives with <code>in</code>, which takes exactly four values: <code>path</code>, <code>query</code>, <code>header</code> or <code>cookie</code>. <code>locker_id</code> in <code>/lockers/{locker_id}</code> is a path parameter and must be marked required; <code>page</code>, <code>per_page</code> and <code>city</code> on <code>GET /lockers</code> are query parameters. A JSON body is not a parameter at all: it is the <code>requestBody</code>.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>servers, security schemes, tags, operationId: the fields people forget<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>servers.</strong> The base URL, with its version, is the first thing a first-call reader needs, and session 1's example lost <code>/v1</code> because it lived nowhere official. Put it in <code>servers</code> and every generated example inherits it.</p>
+        <p><strong>security and securitySchemes.</strong> Two halves that people often write only one of. <code>components.securitySchemes</code> defines how a credential is sent (Parcelpoint: an <code>apiKey</code> in the <code>X-Api-Key</code> header); the root <code>security</code> says which scheme applies by default, and an operation can override it. A spec with a scheme defined but no <code>security</code> requirement documents an API that needs no key, which is a lie the reference page will repeat.</p>
+        <p><strong>tags.</strong> Tags group operations, and most reference generators turn each tag into a section of the navigation. Without them the reference is sorted however the tool likes. Parcelpoint v1 has none yet; session 3 decides what the reader's sections should be.</p>
+        <p><strong>operationId.</strong> A unique, stable name per operation, such as <code>listLockers</code> or <code>createParcel</code>. Generated client libraries name their methods after it and docs tools build anchors from it, so renaming one is a change your users feel even though no URL moved. Choose it once, as a verb plus a noun, and leave it alone.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The best-known sample spec, written spec first.</strong> The Swagger Petstore is the sample API most OpenAPI tools demo against. Its README says the project's third iteration "switched to the design first approach": the OpenAPI document is written and maintained as the source, and the sample server follows it. One caution before you copy from it: the current Petstore sample is OpenAPI 3.0.4, not 3.1, so it still uses the 3.0 shapes Part 2 warns about.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-2">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers components, $ref and JSON Schema in 3.1</span>
+      <h2>Write a schema once, point at it everywhere</h2>
+      <span class="tag concept">5 min live</span>
+    </div>
+    <p class="lede"><code>components</code> is where a document keeps the things more than one operation needs. Each reuse is a <code>$ref</code>, a pointer like <code>#/components/schemas/Locker</code>, not a copy. That one design choice is why an OpenAPI file can be the docs kit's single source: change the schema in one place and every operation, every generated page and every diff sees the change at once. Since 3.1, the schemas themselves are JSON Schema, which retired a few habits that older specs are full of.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 446" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top: the same fields written in OpenAPI 3.0 and in 3.1. A nullable next_cursor goes from type string with nullable true to a type array of string and null. An exclusive minimum goes from minimum 0 with exclusiveMinimum true to exclusiveMinimum 0. A schema example goes from example to an examples array. Bottom: in the constructed Parcelpoint v1 document, GET /lockers and GET /lockers/{locker_id} both point at one Locker schema in components, and a dashed third arrow shows the next operation adding a pointer rather than a copy.">
+        <defs>
+          <filter id="s2bSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="64" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s2bHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s2bAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s2bH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s2bL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s2bC { font: 600 12px ui-monospace, Menlo, Consolas, monospace; fill: #17231A; }
+          .s2bS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s2bR { font: 800 11px Inter, sans-serif; fill: #991B1B; }
+          .s2bW { font: 800 12px Inter, sans-serif; fill: #FFFFFF; }
+          .s2bN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s2bH" x="30" y="26">3.0 SHAPES, 3.1 SHAPES</text>
+        <text class="s2bS" x="200" y="26">same meaning, rewritten for JSON Schema 2020-12; next_cursor is from Parcelpoint v2 (constructed)</text>
+
+        <g filter="url(#s2bSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="30" y="40" width="380" height="172" rx="12" transform="rotate(-0.4 220 126)" fill="#FFFFFF"/>
+          <rect x="470" y="40" width="380" height="172" rx="12" transform="rotate(0.4 660 126)" fill="#EEF6E8"/>
+          <rect x="486" y="89" width="200" height="19" rx="5" fill="#F2B33D" stroke="none"/>
+          <path d="M416 100 L462 100" marker-end="url(#s2bAr)"/>
+          <path d="M416 152 L462 152" marker-end="url(#s2bAr)"/>
+          <path d="M416 182 L462 182" marker-end="url(#s2bAr)"/>
+          <rect x="30" y="262" width="240" height="40" rx="9" transform="rotate(-0.9 150 282)" fill="#FFFFFF"/>
+          <rect x="30" y="312" width="240" height="40" rx="9" transform="rotate(0.7 150 332)" fill="#FFFFFF"/>
+          <rect x="30" y="362" width="240" height="40" rx="9" transform="rotate(-0.6 150 382)" fill="#FFFFFF" stroke-dasharray="6 5"/>
+          <rect x="560" y="312" width="200" height="60" rx="10" transform="rotate(0.8 660 342)" fill="#1A4715"/>
+          <path d="M272 282 L554 330" marker-end="url(#s2bAr)"/>
+          <path d="M272 332 L554 342" marker-end="url(#s2bAr)"/>
+          <path d="M272 382 L554 354" stroke-dasharray="6 5" marker-end="url(#s2bAr)"/>
+        </g>
+
+        <text class="s2bH" x="50" y="62">OpenAPI 3.0</text>
+        <text class="s2bH" x="490" y="62">OpenAPI 3.1</text>
+        <text class="s2bC" x="50" y="86">next_cursor:</text>
+        <text class="s2bC" x="66" y="102">type: string</text>
+        <text class="s2bC" x="66" y="118">nullable: true</text>
+        <text class="s2bC" x="50" y="144">minimum: 0</text>
+        <text class="s2bC" x="50" y="160">exclusiveMinimum: true</text>
+        <text class="s2bC" x="50" y="186">example: LK-0042</text>
+
+        <text class="s2bC" x="490" y="86">next_cursor:</text>
+        <text class="s2bC" x="496" y="102">type: [string, "null"]</text>
+        <text class="s2bC" x="490" y="156">exclusiveMinimum: 0</text>
+        <text class="s2bC" x="490" y="186">examples: [LK-0042]</text>
+        <text class="s2bS" x="700" y="102">nullable is gone</text>
+        <text class="s2bS" x="700" y="156">a number now</text>
+        <text class="s2bS" x="700" y="186">an array now</text>
+
+        <text class="s2bH" x="30" y="248">ONE SCHEMA, MANY POINTERS</text>
+        <text class="s2bS" x="236" y="248">Constructed Parcelpoint example, v1: who points at Locker</text>
+        <text class="s2bL" x="44" y="279">GET /lockers</text>
+        <text class="s2bS" x="44" y="295">200: the items of data[]</text>
+        <text class="s2bL" x="44" y="329">GET /lockers/{locker_id}</text>
+        <text class="s2bS" x="44" y="345">200: the whole body</text>
+        <text class="s2bL" x="44" y="379">your next operation</text>
+        <text class="s2bS" x="44" y="395">adds a pointer, not a copy</text>
+        <text class="s2bW" x="576" y="337">Locker</text>
+        <text class="s2bW" x="576" y="357">components.schemas</text>
+
+        <text class="s2bN" x="30" y="428">Edit Locker once and both operations change with it, which is also why one edit can fill many changelog rows.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - three 3.0 habits rewritten for 3.1 on top, and below, why a schema edit travels to every operation that points at it</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why $ref is the docs kit's single source<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><code>components</code> can hold ten kinds of reusable thing: <code>schemas</code>, <code>responses</code>, <code>parameters</code>, <code>examples</code>, <code>requestBodies</code>, <code>headers</code>, <code>securitySchemes</code>, <code>links</code>, <code>callbacks</code> and <code>pathItems</code>. Most specs live on the first two plus <code>securitySchemes</code>. Anything an operation needs can be written inline instead, and for a shape used exactly once that is fine. The moment a shape appears twice, give it a name in <code>components</code> and point at it.</p>
+        <p>The pay-off is not shorter YAML. It is that a change has one address. In the Constructed Parcelpoint example, <code>Locker</code> is defined once and both locker operations point at it; if v2 renames <code>locker_id</code> to <code>id</code> there, both operations, both reference pages and the diff all see the rename, and nobody has to remember the second copy because there is no second copy.</p>
+        <p>The same property makes changes look big, honestly. In session 5's bench, the edited Swagger Petstore preset changes one schema, <code>Pet.status</code>, and that one edit produces seven change rows: two operations that no longer accept the value, and five that no longer return it. That is not noise. Every one of those operations really did change for its caller, and a changelog that listed only "edited Pet" would hide which calls to retest.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Four 3.0-to-3.1 changes you will meet in an old spec<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>In 3.1, the Schema Object is "a superset of the JSON Schema Specification Draft 2020-12". In 3.0 it was a cousin of JSON Schema with its own rules. The OpenAPI Initiative's migration post (16 February 2021) lists what that means in practice. These four are the ones a 3.0 spec is most likely to contain:</p>
+        <ol>
+          <li><strong><code>nullable</code> is gone.</strong> <code>type: string</code> with <code>nullable: true</code> becomes <code>type: [string, "null"]</code>. The quotes around null matter: unquoted, YAML reads it as an empty value, not the string "null".</li>
+          <li><strong><code>exclusiveMinimum</code> and <code>exclusiveMaximum</code> are numbers.</strong> 3.0 wrote <code>minimum: 0</code> plus <code>exclusiveMinimum: true</code>; 3.1 writes <code>exclusiveMinimum: 0</code> on its own.</li>
+          <li><strong>A schema's <code>example</code> becomes <code>examples</code>, an array.</strong> This is the schema keyword only; example fields on parameters and media types are a separate thing and are not part of this change.</li>
+          <li><strong>The document declares itself as 3.1.</strong> <code>openapi: 3.1.0</code> (or 3.1.1) tells tools to read schemas as JSON Schema 2020-12, which is what makes the other three valid. A file that says 3.0 but uses type arrays is broken in both versions.</li>
+        </ol>
+        <p>Not every tool reads 3.1 yet, which is why plenty of real specs, the Petstore sample among them at 3.0.4, still use the 3.0 shapes. When you inherit one, convert it in a single reviewed change, not field by field as you touch it.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The migration post as a checklist.</strong> When OpenAPI 3.1.0 was published on 15 February 2021, the OpenAPI Initiative followed it the next day with "Migrating from OpenAPI 3.0 to 3.1.0", a short list of the edits to make by hand. It is the most useful single page to have open when you upgrade a spec: the version line, nullable to type arrays, exclusive bounds as numbers, examples as arrays. The current 3.1 patch release, 3.1.1, is dated 24 October 2024 and keeps the same shapes. A newer minor version, OpenAPI 3.2.0, was published on 19 September 2025 and adds features such as a <code>query</code> method and a <code>querystring</code> parameter location. Everything on these pages is 3.1, which is what Parcelpoint's documents and the session 5 bench use; check which version your own tools read before you upgrade.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-3">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers spec-first versus code-first, a contested choice</span>
+      <h2>Who writes the contract first</h2>
+      <span class="tag concept">4 min live</span>
+    </div>
+    <p class="lede">Teams argue about this with real conviction, and both sides ship good APIs. Spec-first teams write the OpenAPI document before the code and review it like code. Code-first teams write the handlers and let the framework generate the document. There is no published evidence that settles which produces better docs, so this Part gives no verdict. It shows where each workflow authors the contract, where drift can slip in, who gets to review the contract, and what each costs.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two pipelines side by side. Spec-first: write the OpenAPI document, where the contract is authored; review it like code; generate docs, mocks and tests from it; build the server to match. Drift can slip in at the server, which can ship what the document never said; caught by contract tests in session 4. Code-first: write the handlers with types and annotations; the framework generates the document, where the contract is derived; serve interactive docs from the same code; review the code pull request, where the contract change is implicit. Drift can slip in at the handlers, where a refactor can change the contract unreviewed; caught by diffing the generated document in session 5.">
+        <defs>
+          <filter id="s2cSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="77" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s2cHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s2cAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s2cH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s2cL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s2cS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s2cA { font: 700 11px Inter, sans-serif; fill: #1A4715; }
+          .s2cW { font: 800 12px Inter, sans-serif; fill: #FFFFFF; }
+        </style>
+
+        <text class="s2cH" x="30" y="24">WHERE THE CONTRACT IS AUTHORED, AND WHERE DRIFT SLIPS IN</text>
+        <text class="s2cA" x="60" y="50">SPEC-FIRST</text>
+        <text class="s2cA" x="480" y="50">CODE-FIRST</text>
+
+        <g filter="url(#s2cSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M440 40 L440 366" stroke="#C6D3BE"/>
+          <rect x="60" y="62" width="260" height="44" rx="10" transform="rotate(-0.6 190 84)" fill="#1A4715"/>
+          <rect x="60" y="132" width="260" height="44" rx="10" transform="rotate(0.5 190 154)" fill="#FFFFFF"/>
+          <rect x="60" y="202" width="260" height="44" rx="10" transform="rotate(-0.4 190 224)" fill="#EEF6E8"/>
+          <rect x="60" y="272" width="260" height="44" rx="10" transform="rotate(0.6 190 294)" fill="#FFFFFF"/>
+          <path d="M190 107 L190 128" marker-end="url(#s2cAr)"/>
+          <path d="M190 177 L190 198" marker-end="url(#s2cAr)"/>
+          <path d="M190 247 L190 268" marker-end="url(#s2cAr)"/>
+          <path d="M321 294 L330 294"/>
+          <rect x="330" y="280" width="96" height="28" rx="8" transform="rotate(-2 378 294)" fill="#F2B33D"/>
+
+          <rect x="480" y="62" width="260" height="44" rx="10" transform="rotate(0.5 610 84)" fill="#FFFFFF"/>
+          <rect x="480" y="132" width="260" height="44" rx="10" transform="rotate(-0.6 610 154)" fill="#1A4715"/>
+          <rect x="480" y="202" width="260" height="44" rx="10" transform="rotate(0.4 610 224)" fill="#EEF6E8"/>
+          <rect x="480" y="272" width="260" height="44" rx="10" transform="rotate(-0.5 610 294)" fill="#FFFFFF"/>
+          <path d="M610 107 L610 128" marker-end="url(#s2cAr)"/>
+          <path d="M610 177 L610 198" marker-end="url(#s2cAr)"/>
+          <path d="M610 247 L610 268" marker-end="url(#s2cAr)"/>
+          <path d="M741 84 L750 84"/>
+          <rect x="750" y="70" width="96" height="28" rx="8" transform="rotate(2 798 84)" fill="#F2B33D"/>
+        </g>
+
+        <text class="s2cW" x="76" y="81">1 · Write the OpenAPI document</text>
+        <text class="s2cW" x="76" y="98">the contract is authored here</text>
+        <text class="s2cL" x="76" y="151">2 · Review it like code</text>
+        <text class="s2cS" x="76" y="168">API reviewers, writers, consumers</text>
+        <text class="s2cL" x="76" y="221">3 · Generate from it</text>
+        <text class="s2cS" x="76" y="238">docs, mocks, tests</text>
+        <text class="s2cL" x="76" y="291">4 · Build the server</text>
+        <text class="s2cS" x="76" y="308">to match the document</text>
+        <text class="s2cL" x="378" y="298" text-anchor="middle">drift here</text>
+        <text class="s2cS" x="60" y="338">the server can ship what the document never said</text>
+        <text class="s2cA" x="60" y="356">caught by: contract tests, session 4</text>
+
+        <text class="s2cL" x="496" y="81">1 · Write the handlers</text>
+        <text class="s2cS" x="496" y="98">types and annotations in code</text>
+        <text class="s2cW" x="496" y="151">2 · Generate the document</text>
+        <text class="s2cW" x="496" y="168">the contract is derived here</text>
+        <text class="s2cL" x="496" y="221">3 · Serve interactive docs</text>
+        <text class="s2cS" x="496" y="238">from the same running code</text>
+        <text class="s2cL" x="496" y="291">4 · Review the code PR</text>
+        <text class="s2cS" x="496" y="308">the contract change is implicit</text>
+        <text class="s2cL" x="798" y="88" text-anchor="middle">drift here</text>
+        <text class="s2cS" x="480" y="338">a refactor can change the contract, unreviewed</text>
+        <text class="s2cA" x="480" y="356">caught by: diffing the document, session 5</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the dark box is where each workflow's contract comes from; the marigold tag is where each one can drift without anyone deciding to</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Two honest workflows<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>Spec-first.</strong> Someone writes the OpenAPI document and opens a pull request with no code in it. API reviewers, the docs writer and, ideally, a consumer team read the contract while it is still cheap to change. Once merged, the reference, mock servers and test stubs are generated from it, and the server is built to match. <em>What it costs:</em> the contract is written twice in effect, once as YAML and once as code, and keeping them equal needs a test that fails when they differ (session 4). <em>Where it drifts:</em> at the server, which can quietly accept or return something the document never mentioned.</p>
+        <p><strong>Code-first.</strong> Engineers write handlers with typed request and response models, and the framework produces the OpenAPI document from them, usually serving interactive docs from the same running code. There is one thing to keep up to date, and the document cannot disagree with the types. <em>What it costs:</em> the contract is shaped by whatever the framework emits, descriptions and examples live in code annotations that engineers write, and nobody reviews "the contract" as such. <em>Where it drifts:</em> at the handlers, where renaming a model field in a refactor renames a public field, and the pull request reads like an internal tidy-up.</p>
+        <p><strong>Who reviews the contract</strong> is the real difference. Spec-first puts the contract in front of reviewers on purpose. Code-first can do the same, but only if the team adds that step, which is the self-study card below.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Hybrid: generate from code, diff in review<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Many code-first teams close the review gap without changing how they write code: the build generates the OpenAPI document, commits it (or attaches it to the pull request), and a diff of that document against the last release appears in review. A reviewer who would never spot a renamed field in a model class will spot "<code>locker_id</code> removed" in a contract diff.</p>
+        <p>That is exactly what session 5's bench does: it compares two OpenAPI documents and does not care whether a person or a framework wrote them. So whichever side your team is on, the deliverable for session 5 is the same, a JSON copy of the document for the release you shipped and the one you are about to. Tooling exists for every part of this (spec editors, mock servers, contract testers, diff checkers in CI); choose by category and by what your team already runs, since none of it is needed to follow these six sessions.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>A framework that writes the spec for you.</strong> FastAPI, a Python web framework, lists among its features that it generates an OpenAPI description and interactive API documentation straight from the application code: the types you declare for a request and a response become the schemas in the document. It is the clearest working example of the code-first side, just as the Petstore README is of the spec-first side. Read both feature lists and you have the two cases in their own words.</p>
+    </div>
+  </section>
+
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Build-along</span>
+      <h2>Parcelpoint v1.4.2 in OpenAPI 3.1</h2>
+      <span class="tag demo">★ 22 min · everyone builds</span>
+    </div>
+    <p class="lede">You will write two operations of the Constructed Parcelpoint example in OpenAPI 3.1 YAML: <code>GET /lockers</code> and <code>POST /parcels</code>, plus the shared schemas they point at. Type each step into a file of your own before you look at the box under it; the boxes match, field for field, the v1.4.2 document the session 5 bench loads. Any text editor will do, and nothing needs to run.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Six build-along steps mapped to the branches of the constructed Parcelpoint v1.4.2 document. Step 1, root and auth, writes openapi, info, servers and security. Step 2, shared schemas, writes components.schemas: four schemas, written once. Step 3, list lockers, writes paths./lockers.get with three query parameters and responses 200 and 401. Step 4, create a parcel, highlighted, writes paths./parcels.post with a $ref in and responses 201, 400 and 409. Step 5 reads the whole tree against session 1's example and finds three mismatches. Step 6 writes the same tree as JSON, which session 5 reads.">
+        <defs>
+          <filter id="s2dSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="85" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s2dHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s2dAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s2dH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s2dL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s2dC { font: 600 12px ui-monospace, Menlo, Consolas, monospace; fill: #17231A; }
+          .s2dS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s2dN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s2dH" x="30" y="24">WHICH STEP FILLS WHICH BRANCH</text>
+        <text class="s2dS" x="270" y="24">Constructed Parcelpoint example, v1.4.2</text>
+
+        <g filter="url(#s2dSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="44" cy="60" r="12" fill="#FFFFFF"/>
+          <circle cx="44" cy="104" r="12" fill="#FFFFFF"/>
+          <circle cx="44" cy="148" r="12" fill="#FFFFFF"/>
+          <circle cx="44" cy="192" r="12" fill="#F2B33D"/>
+          <circle cx="44" cy="236" r="12" fill="#FFFFFF"/>
+          <circle cx="44" cy="280" r="12" fill="#FFFFFF"/>
+          <path d="M296 60 L352 60" marker-end="url(#s2dAr)"/>
+          <path d="M296 104 L352 104" marker-end="url(#s2dAr)"/>
+          <path d="M296 148 L352 148" marker-end="url(#s2dAr)"/>
+          <path d="M296 192 L352 192" marker-end="url(#s2dAr)"/>
+          <path d="M296 236 L352 236" marker-end="url(#s2dAr)"/>
+          <path d="M296 280 L352 280" marker-end="url(#s2dAr)"/>
+          <rect x="360" y="44" width="280" height="32" rx="8" transform="rotate(-0.5 500 60)" fill="#EEF6E8"/>
+          <rect x="360" y="88" width="280" height="32" rx="8" transform="rotate(0.5 500 104)" fill="#EEF6E8"/>
+          <rect x="360" y="132" width="280" height="32" rx="8" transform="rotate(-0.4 500 148)" fill="#EEF6E8"/>
+          <rect x="360" y="176" width="280" height="32" rx="8" transform="rotate(0.6 500 192)" fill="#F2B33D"/>
+          <rect x="360" y="220" width="280" height="32" rx="8" transform="rotate(-0.5 500 236)" fill="url(#s2dHc)"/>
+          <rect x="360" y="264" width="280" height="32" rx="8" transform="rotate(0.4 500 280)" fill="#FFFFFF"/>
+        </g>
+
+        <text class="s2dL" x="44" y="64" text-anchor="middle">1</text>
+        <text class="s2dL" x="44" y="108" text-anchor="middle">2</text>
+        <text class="s2dL" x="44" y="152" text-anchor="middle">3</text>
+        <text class="s2dL" x="44" y="196" text-anchor="middle">4</text>
+        <text class="s2dL" x="44" y="240" text-anchor="middle">5</text>
+        <text class="s2dL" x="44" y="284" text-anchor="middle">6</text>
+
+        <text class="s2dL" x="66" y="64">Root and auth</text>
+        <text class="s2dL" x="66" y="108">Shared schemas</text>
+        <text class="s2dL" x="66" y="152">List lockers</text>
+        <text class="s2dL" x="66" y="196">Create a parcel</text>
+        <text class="s2dL" x="66" y="240">Check session 1's example</text>
+        <text class="s2dL" x="66" y="284">Keep a JSON copy</text>
+
+        <text class="s2dC" x="376" y="64">openapi, info, servers, security</text>
+        <text class="s2dC" x="376" y="108">components</text>
+        <text class="s2dC" x="376" y="152">paths./lockers.get</text>
+        <text class="s2dC" x="376" y="196">paths./parcels.post</text>
+        <text class="s2dC" x="376" y="240">the whole tree vs one example</text>
+        <text class="s2dC" x="376" y="284">the same tree, as JSON</text>
+
+        <text class="s2dS" x="656" y="64">3.1.0, /v1, X-Api-Key</text>
+        <text class="s2dS" x="656" y="108">4 schemas, written once</text>
+        <text class="s2dS" x="656" y="152">3 query params; 200, 401</text>
+        <text class="s2dS" x="656" y="196">$ref in; 201, 400, 409</text>
+        <text class="s2dS" x="656" y="240">3 mismatches to find</text>
+        <text class="s2dS" x="656" y="284">session 5 reads JSON</text>
+
+        <text class="s2dN" x="30" y="322">Steps 1 to 4 write the tree, step 5 reads it against a real example, step 6 changes the syntax, not the tree.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - four steps write four branches, then one step tests the tree and one changes only its syntax</figcaption>
+    </figure>
+
+    <div class="steps">
+      <div class="step">
+        <p><strong>Write the root: what this is, where it lives, how to authenticate.</strong> Two version lines that mean different things, one server with the version in the URL, and a default security requirement that points at a scheme you will define in step 2.</p>
+        <div class="prompt-box good"><span class="label">★ Step 1 · root fields (constructed Parcelpoint v1.4.2)</span>openapi: 3.1.0
+info:
+  title: Parcelpoint API (constructed example)
+  version: 1.4.2
+  description: Lockers, parcels, reservations and pickup webhooks.
+servers:
+  - url: https://api.parcelpoint.example/v1
+security:
+  - apiKey: []</div>
+      </div>
+      <div class="step">
+        <p><strong>Write the shared pieces in components.</strong> The security schemes, and the four schemas these two operations need: <code>Locker</code>, <code>ParcelCreate</code> (what you send), <code>Parcel</code> (what you get back) and <code>Error</code>. Note the size enum, exactly four lowercase values, and which fields each <code>required</code> list names. The full v1 document also has a <code>Reservation</code> schema; it belongs to <code>/reservations</code>, which is not part of tonight.</p>
+        <div class="prompt-box good"><span class="label">★ Step 2 · components (bearer is defined in v1 but used by nothing yet)</span>components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+    bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    Locker:
+      type: object
+      required: [locker_id, address, city]
+      properties:
+        locker_id: {type: string}
+        address: {type: string}
+        city: {type: string}
+        size_classes:
+          type: array
+          items: {type: string, enum: [small, medium, large, xl]}
+        open_24h: {type: boolean}
+    ParcelCreate:
+      type: object
+      required: [locker_id, recipient_phone, size]
+      properties:
+        locker_id: {type: string}
+        recipient_phone: {type: string}
+        size: {type: string, enum: [small, medium, large, xl]}
+    Parcel:
+      type: object
+      required: [parcel_id, status, locker_id]
+      properties:
+        parcel_id: {type: string}
+        status: {type: string, enum: [created, in_locker, picked_up, expired]}
+        locker_id: {type: string}
+        pickup_code: {type: string}
+        created_at: {type: string, format: date-time}
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: {type: string}
+        message: {type: string}</div>
+      </div>
+      <div class="step">
+        <p><strong>Write <code>GET /lockers</code>.</strong> Three optional query parameters, a 200 whose body is a page of lockers pointing at <code>Locker</code>, and a 401 pointing at <code>Error</code>. Quote the status codes: in YAML an unquoted <code>200</code> is a number, while JSON object keys are always strings.</p>
+        <div class="prompt-box good"><span class="label">★ Step 3 · paths./lockers</span>paths:
+  /lockers:
+    get:
+      operationId: listLockers
+      summary: List lockers
+      description: Returns lockers, one page at a time.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Page number, starting at 1.
+          schema: {type: integer}
+        - name: per_page
+          in: query
+          required: false
+          description: Lockers per page, up to 100.
+          schema: {type: integer}
+        - name: city
+          in: query
+          required: false
+          description: Only lockers in this city.
+          schema: {type: string}
+      responses:
+        "200":
+          description: A page of lockers.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, page, total_pages]
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: "#/components/schemas/Locker"}
+                  page: {type: integer}
+                  total_pages: {type: integer}
+        "401":
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}</div>
+      </div>
+      <div class="step">
+        <p><strong>Write <code>POST /parcels</code>.</strong> A required JSON body that points at <code>ParcelCreate</code> rather than restating it, and three responses: 201 with the new <code>Parcel</code>, 400 for an invalid body, 409 when the locker has no free slot of that size. This sits under the same <code>paths:</code> key as step 3.</p>
+        <div class="prompt-box good"><span class="label">★ Step 4 · paths./parcels, with the $ref jump</span>  /parcels:
+    post:
+      operationId: createParcel
+      summary: Create a parcel
+      description: Registers a parcel for delivery to a locker.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ParcelCreate"}
+      responses:
+        "201":
+          description: Parcel created.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Parcel"}
+        "400":
+          description: The request body is invalid.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}
+        "409":
+          description: The locker has no free slot of that size.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}</div>
+      </div>
+      <div class="step">
+        <p><strong>Check session 1's broken example against what you wrote.</strong> Read the body from the old landing page against <code>ParcelCreate</code>, key by key, the way a validator would. Write your list first. One subtlety: <code>ParcelCreate</code> does not set <code>additionalProperties: false</code>, so by the schema alone the unknown keys are tolerated; the request fails because the required ones are missing.</p>
+        <div class="prompt-box good"><span class="label">★ Step 5 · the session 1 body, checked against ParcelCreate</span>Body from session 1:
+  {"locker": "LK-0042", "phone": "+1 555 0100", "size": "M"}
+
+locker_id        required  -&gt; missing ("locker" is not a ParcelCreate field)
+recipient_phone  required  -&gt; missing ("phone" is not a ParcelCreate field)
+size             required  -&gt; present, but "M" is not in [small, medium, large, xl]
+
+Verdict: 400, three mismatches. The fix is the spec's names and "medium".
+The spec is now the referee: whichever page disagrees with it is the page to fix.</div>
+      </div>
+      <div class="step">
+        <p><strong>Keep a JSON copy.</strong> The session 5 bench reads JSON only; it does not load a YAML parser. Convert your file with any YAML-to-JSON converter you trust, or by hand for a file this size, and keep both. YAML is easier for people to review; JSON is what the diff reads. The start of the JSON copy looks like this.</p>
+        <div class="prompt-box good"><span class="label">★ Step 6 · the same tree, as JSON (first lines)</span>{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Parcelpoint API (constructed example)",
+    "version": "1.4.2",
+    "description": "Lockers, parcels, reservations and pickup webhooks."
+  },
+  "servers": [{"url": "https://api.parcelpoint.example/v1"}],
+  "security": [{"apiKey": []}],
+  "paths": {
+    "/parcels": {
+      "post": {
+        "operationId": "createParcel",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/ParcelCreate"}
+            }
+          }
+        },
+        ...</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <p><strong>Read it aloud before you trust it.</strong> Walk your file the way Part 1 walked the tree: root, then <code>/lockers</code>, then <code>/parcels</code>, then every <code>$ref</code> to the schema it lands on. A <code>$ref</code> with a typo in the schema name is the most common mistake in a hand-written spec, and it is invisible until a tool tries to follow it.</p>
+    </div>
+  </section>
+
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Before session 3</h2>
+      <span class="tag exercise">30 min</span>
+    </div>
+    <ol>
+      <li><strong>Finish the Parcelpoint spec.</strong> Add <code>GET /lockers/{locker_id}</code> (a required path parameter, 200 pointing at <code>Locker</code>, 404 pointing at <code>Error</code>) and <code>GET /parcels/{parcel_id}</code> the same way. Notice that neither needs a new schema.</li>
+      <li><strong>Find your own contract.</strong> Open your API's OpenAPI file, generated or hand-written. Note its <code>openapi</code> version, whether it has <code>servers</code>, <code>security</code> and <code>operationId</code> on every operation, and how many schemas are inline instead of in <code>components</code>.</li>
+      <li><strong>Hunt the 3.0 habits.</strong> Search the same file for <code>nullable</code>, <code>exclusiveMinimum: true</code> and a schema-level <code>example</code>. Each hit is a line to change if you move to 3.1.</li>
+      <li><strong>Name your team's workflow.</strong> In two sentences: is your contract authored spec-first or code-first, and at which point in your process does a person review it as a contract? If the answer is "nowhere", write down where the session 5 diff could sit.</li>
+    </ol>
+  </section>
+
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions</h2>
+    </div>
+    <p>Clear all three and session 2 gets stamped in your passport.</p>
+
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Which root fields does the OpenAPI 3.1 Specification require in every document?</p>
+      <button class="qopt" type="button">A · <code>openapi</code>, <code>info</code>, <code>servers</code> and <code>paths</code></button>
+      <button class="qopt" type="button">B · Only <code>openapi</code> and <code>info</code>, with at least one of <code>paths</code>, <code>components</code> or <code>webhooks</code> also present</button>
+      <button class="qopt" type="button">C · <code>paths</code> alone, since an API without paths is not an API</button>
+      <button class="qopt" type="button">D · Every one of the ten root fields, possibly empty</button>
+      <p class="qwhy">The specification marks exactly two root fields REQUIRED and adds the at-least-one rule. <code>servers</code> and <code>security</code> are optional to the format but close to mandatory for a reader: without them the docs cannot say where to call or how to authenticate.</p>
+    </div>
+
+    <div class="quiz-q" data-answer="3">
+      <p class="qtext">2 · You inherit a 3.0 schema with <code>type: string</code> and <code>nullable: true</code>. How do you write the same field in OpenAPI 3.1?</p>
+      <button class="qopt" type="button">A · Keep <code>nullable: true</code>; 3.1 still reads it</button>
+      <button class="qopt" type="button">B · <code>type: string</code> with <code>default: null</code></button>
+      <button class="qopt" type="button">C · <code>type: "string or null"</code></button>
+      <button class="qopt" type="button">D · <code>type: [string, "null"]</code>, a type array, because 3.1 schemas are JSON Schema 2020-12 and <code>nullable</code> was removed</button>
+      <p class="qwhy">The OpenAPI Initiative's migration post lists it first: nullable is gone and a type array with "null" replaces it. A default value says what is assumed when the field is absent, which is a different promise from "this field may be null".</p>
+    </div>
+
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Why does keeping <code>Locker</code> in <code>components</code> and pointing at it with <code>$ref</code> matter when the API changes?</p>
+      <button class="qopt" type="button">A · Because the change has one address: edit the schema once and every operation, generated page and diff that points at it sees the same change, with no second copy left behind to drift</button>
+      <button class="qopt" type="button">B · Because a <code>$ref</code> makes the YAML file shorter, which is the main goal of a spec</button>
+      <button class="qopt" type="button">C · Because schemas outside <code>components</code> are not allowed in OpenAPI 3.1</button>
+      <button class="qopt" type="button">D · Because a <code>$ref</code> hides schema changes from the changelog, keeping it short</button>
+      <p class="qwhy">Inline schemas are allowed; they just make every change a hunt for copies. And a <code>$ref</code> shows changes rather than hiding them: in session 5's edited Petstore preset, one edit to <code>Pet.status</code> produced seven change rows, one per operation that really changed for its caller.</p>
+    </div>
+
+    <p class="quiz-score"></p>
+  </section>
+
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Sources covered</span>
+      <h2>What this session teaches, and where it came from</h2>
+    </div>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">OpenAPI Specification 3.1</span><span class="note">OpenAPI Specification v3.1.1 (24 October 2024) and v3.1.0 (15 February 2021), spec.openapis.org: root fields, only openapi and info REQUIRED, the at-least-one rule, operation fields, parameter locations, components; read at source</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">JSON Schema in 3.1</span><span class="note">JSON Schema Draft 2020-12, via the OAS 3.1 Schema Object, described as a superset of it; read at source</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">3.0 to 3.1 migration</span><span class="note">OpenAPI Initiative, "Migrating from OpenAPI 3.0 to 3.1.0" (16 February 2021), openapis.org/blog: nullable, exclusive bounds, examples; read at source</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Spec-first example</span><span class="note">Swagger Petstore, github.com/swagger-api/swagger-petstore (Apache-2.0, commit 5cb909f): README on the design first approach; the sample is OpenAPI 3.0.4</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Code-first example</span><span class="note">FastAPI, "Features", fastapi.tiangolo.com/features: generates OpenAPI and interactive docs from code; read at source</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Spec-first versus code-first</span><span class="note">Contested practice with no settling evidence; both workflows taught with their costs, no verdict given</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Parcelpoint v1.4.2</span><span class="note">Constructed example; every YAML line on this page matches the v1.4.2 document the session 5 bench loads</span></div>
+    </div>
+    <p class="mono" style="margin-top:14px">Every fact on this page, and its verification tier, is recorded in the course's source map.</p>
+  </section>
+
+  <section class="cheat" id="cheatsheet">
+    <h3>Session 2 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Two required root fields</b><span>openapi and info. Plus at least one of paths, components or webhooks.</span></div>
+      <div class="cheat-item"><b>Two versions, two meanings</b><span>openapi is the format version; info.version is your API's version, the one SemVer bumps.</span></div>
+      <div class="cheat-item"><b>Read order</b><span>Root, paths, operation by method, parameters (in: path, query, header, cookie), requestBody, responses.</span></div>
+      <div class="cheat-item"><b>$ref is the single source</b><span>Shapes used twice live in components. One edit, one address, every operation sees it.</span></div>
+      <div class="cheat-item"><b>3.0 habits to retire</b><span>nullable to a type array with "null"; exclusive bounds as numbers; schema example to examples.</span></div>
+      <div class="cheat-item"><b>Spec-first or code-first</b><span>Either works. Ask where the contract is authored, where it drifts, and who reviews it as a contract.</span></div>
+    </div>
+  </section>
+
+  <div class="callout next">
+    <span class="nx-pill">Next session</span>
+    <p>You now have a contract for <code>POST /parcels</code>. Session 3 turns it into the page the debug reader opens at two in the morning: a reference page for that one operation that answers the real question first, with every parameter, every status code and its fix, and the structure GitHub and Stripe use for theirs.</p>
+  </div>
+
+  <footer class="pagefoot">
+    <span>Session 2 of 6 · learn-api-docs-changelogs-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="01-who-reads-the-docs.html">← Prev: Docs as the API's interface</a> &nbsp;·&nbsp; <a href="03-reference-pages.html">Next: Reference pages →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

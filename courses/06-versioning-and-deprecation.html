@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- social:start -->
+<meta name="description" content="Session 6 of 6. A breaking change is only half shipped until the reader knows what to do. SemVer and the three places a version can live, Keep a Changelog, the Deprecation and Sunset headers, a migration guide with one step per broken promise, and the whole constructed Parcelpoint docs kit scored.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Learn with Phoebe">
+<meta property="og:title" content="Versioning and deprecation - learn api docs changelogs with phoebe">
+<meta property="og:description" content="Session 6 of 6. SemVer, three versioning styles, the Deprecation and Sunset headers, a migration guide, and a capstone score for the whole docs kit.">
+<meta property="og:url" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/courses/06-versioning-and-deprecation.html">
+<meta property="og:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Versioning and deprecation - learn api docs changelogs with phoebe">
+<meta name="twitter:description" content="Session 6 of 6. Deprecation and Sunset headers, a migration guide, and the docs kit scored.">
+<meta name="twitter:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<!-- social:end -->
+<title>Session 6 · Versioning and deprecation - learn api docs changelogs with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-api-docs-changelogs-with-phoebe</a> / Session 6 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn API Docs &amp; Changelogs with Phoebe · Session 6 of 6</div>
+    <h1>Versioning and deprecation: a changelog someone can <span class="accent">act on</span></h1>
+    <p class="sub">Session 5 ended with a correct list: thirty changes between Parcelpoint v1 and v2, twelve of them breaking, a MAJOR bump from 1.4.2 to 2.0.0. A correct list is not yet a kind one. The developer reading it on a Tuesday afternoon needs three more things: which version they are on and how to move, a date after which the old thing stops answering, and for every broken promise, what to send or read instead. Tonight we write all three for the Constructed Parcelpoint example, then score the whole docs kit from session 1 to here.</p>
+    <div class="chip-row">
+      <span class="chip level">🔴 Capstone</span>
+      <span class="chip audience">Engineers who ship APIs, platform and DX teams, tech writers</span>
+      <span class="chip audience">Bring your session 5 changelog draft</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Versions, deprecation, migration</span>
+      <span class="a3" style="flex:5">18-40 · Build-along: the deprecation kit and the score</span>
+      <span class="a4" style="flex:1">40-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where we start</h2>
+    </div>
+    <p class="lede">The upgrade reader from session 1 has been waiting five sessions for this page. They do not want to know that v2 is better. They want to know whether it breaks them, what to change, and how long they have. A version number answers the first question in one glance, a deprecation header answers the third in every response the old endpoint sends, and a migration guide answers the second one line at a time. All three are built from the same diff session 5 produced, which is the point of having a spec in the middle of the kit.</p>
+
+    <div class="legend">
+      <span class="pill">🎫 Clear all three quiz questions to stamp your passport</span>
+      <span class="pill">Live = presented in the 45 minutes</span>
+      <span class="pill">Self-study = the full depth, after class</span>
+      <span class="pill">★ Build-along = do it yourself, in the page</span>
+    </div>
+
+    <div class="callout win">
+      <p><strong>★ What you walk out with tonight.</strong> A deprecation notice for the constructed Parcelpoint's <code>GET /lockers/{locker_id}/status</code> with exact Deprecation, Sunset and Link headers; the v2.0.0 changelog entry rewritten for humans; a ten-step migration guide; a dated timeline; and an honest score for the whole six-piece docs kit, with the weakest row named.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-1">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers SemVer and the three API versioning styles</span>
+      <h2>Three numbers, and three places to carry them</h2>
+      <span class="tag concept">6 min live</span>
+    </div>
+    <p class="lede">Semantic Versioning gives a version number a meaning a machine can act on: a dependency range like "any 1.x" is a promise that nothing in 1.x will break you. HTTP APIs then have a second, separate decision that SemVer says nothing about: where in the request the version travels. Three real styles answer it three different ways, and the figure shows what each one asks a client to change when it upgrades.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three panels showing where an API version travels. Panel 1, Google AIP-185: the major version sits in the URL path, GET /v1/lockers; minor and patch ship in place under the same v1; to upgrade, change the path from v1 to v2. Panel 2, GitHub: a date-named version travels in the X-GitHub-Api-Version request header, for example 2026-03-10; with no header GitHub uses 2022-11-28; to upgrade, change the header date. Panel 3, Stripe: the version is pinned on the account, and an optional Stripe-Version header overrides it per request; to upgrade, try the new version per request, then move the account default. Request lines are illustrative.">
+        <defs>
+          <filter id="s6aSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="61" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s6aHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s6aAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s6aH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s6aL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s6aM { font: 600 11px Inter, sans-serif; fill: #17231A; }
+          .s6aS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s6aA { font: 700 11px Inter, sans-serif; fill: #1A4715; }
+          .s6aN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s6aH" x="30" y="26">WHERE THE VERSION TRAVELS</text>
+        <text class="s6aS" x="226" y="26">highlighted = the part of the request that carries it; request lines illustrative</text>
+
+        <g filter="url(#s6aSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="20" y="44" width="270" height="290" rx="12" transform="rotate(-0.4 155 189)" fill="#EEF6E8"/>
+          <rect x="305" y="44" width="270" height="290" rx="12" transform="rotate(0.3 440 189)" fill="#EEF6E8"/>
+          <rect x="590" y="44" width="270" height="290" rx="12" transform="rotate(-0.3 725 189)" fill="#EEF6E8"/>
+          <!-- request boxes -->
+          <rect x="34" y="100" width="242" height="70" rx="8" fill="#FFFFFF"/>
+          <rect x="319" y="100" width="242" height="70" rx="8" fill="#FFFFFF"/>
+          <rect x="604" y="100" width="242" height="70" rx="8" fill="#FFFFFF"/>
+          <!-- version carriers -->
+          <rect x="40" y="108" width="230" height="24" rx="6" fill="#F2B33D"/>
+          <rect x="325" y="138" width="230" height="24" rx="6" fill="#F2B33D"/>
+          <rect x="610" y="138" width="230" height="24" rx="6" fill="#FFFFFF" stroke-dasharray="5 4"/>
+          <rect x="604" y="184" width="242" height="46" rx="8" transform="rotate(0.6 725 207)" fill="#F2B33D"/>
+          <!-- dividers before the upgrade block -->
+          <path d="M40 238 L270 238" stroke="#C6D3BE"/>
+          <path d="M325 238 L555 238" stroke="#C6D3BE"/>
+          <path d="M610 238 L840 238" stroke="#C6D3BE"/>
+          <!-- doodle: a luggage tag, the version as a label the request carries -->
+          <path d="M836 18 L856 18 L862 26 L856 34 L836 34 Z"/>
+          <circle cx="842" cy="26" r="2"/>
+        </g>
+
+        <text class="s6aH" x="36" y="68">1 · In the URL path</text>
+        <text class="s6aS" x="36" y="86">Google AIP-185</text>
+        <text class="s6aM" x="50" y="124">GET /v1/lockers</text>
+        <text class="s6aS" x="50" y="154">Accept: application/json</text>
+        <text class="s6aS" x="36" y="200">minor and patch ship in place,</text>
+        <text class="s6aS" x="36" y="216">under the same /v1, never /v1.0</text>
+        <text class="s6aA" x="36" y="258">TO UPGRADE</text>
+        <text class="s6aL" x="36" y="278">Change the path: /v1 to /v2</text>
+        <text class="s6aS" x="36" y="296">every call site, one string each</text>
+        <text class="s6aS" x="36" y="320">version visible in every URL</text>
+
+        <text class="s6aH" x="321" y="68">2 · In a request header</text>
+        <text class="s6aS" x="321" y="86">GitHub REST, date-named versions</text>
+        <text class="s6aS" x="335" y="124">GET /repos/{owner}/{repo}/issues</text>
+        <text class="s6aM" x="335" y="154">X-GitHub-Api-Version: 2026-03-10</text>
+        <text class="s6aS" x="321" y="200">no header sent = 2022-11-28</text>
+        <text class="s6aS" x="321" y="216">(at the time of writing)</text>
+        <text class="s6aA" x="321" y="258">TO UPGRADE</text>
+        <text class="s6aL" x="321" y="278">Change the header date</text>
+        <text class="s6aS" x="321" y="296">old date supported 24+ months</text>
+        <text class="s6aS" x="321" y="320">stable URL; version lives in code</text>
+
+        <text class="s6aH" x="606" y="68">3 · Pinned per account</text>
+        <text class="s6aS" x="606" y="86">Stripe, dated releases</text>
+        <text class="s6aS" x="620" y="124">GET /lockers</text>
+        <text class="s6aS" x="620" y="154">Stripe-Version: optional override</text>
+        <text class="s6aL" x="618" y="203">Account default version</text>
+        <text class="s6aM" x="618" y="220">used when no header is sent</text>
+        <text class="s6aA" x="606" y="258">TO UPGRADE</text>
+        <text class="s6aL" x="606" y="278">Try the new version per request</text>
+        <text class="s6aS" x="606" y="296">then move the account default</text>
+        <text class="s6aS" x="606" y="320">old integrations keep their pin</text>
+
+        <text class="s6aN" x="30" y="362">SemVer says what a number promises. Each style decides where the number rides, and so what an upgrade edits.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the same promise carried in three places: the path, a header, or the account itself</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>SemVer for an HTTP API: what the three numbers promise<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Semantic Versioning 2.0.0 reads MAJOR.MINOR.PATCH. MAJOR goes up for incompatible API changes, MINOR for backward-compatible new functionality, PATCH for backward-compatible bug fixes. Its first rule is the one people skip: the software must declare a public API. For an HTTP API that declaration is the OpenAPI document from session 2. Without it, nobody can say whether a change is compatible, because there is nothing to be compatible with.</p>
+        <p>Rule 7 is the one this session leans on. MINOR must be incremented when any public API functionality is marked as deprecated. Deprecating is a change in what you promise about the future, so it gets a version of its own. The SemVer FAQ spells out the order: deprecate in a minor release, remove in a later major release, and let at least one minor release carry the deprecation before the removal so users see it coming.</p>
+        <p>For the Constructed Parcelpoint example that order is exactly 1.5.0 then 2.0.0. Session 5's bench already computed both: v1 to v1.5 is 7 changes, none breaking, MINOR to 1.5.0, and that minor includes the deprecation of <code>GET /lockers/{locker_id}/status</code>; v1 to v2 is 30 changes with 12 breaking, MAJOR to 2.0.0, and the status endpoint is gone. The version numbers are not decoration on the changelog; they are the changelog's headline.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Three places a version can live<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>In the URL path (Google AIP-185).</strong> The major version is part of the path: <code>v1</code>, never <code>v1.0</code>. Minor and patch changes are applied in place, so a <code>v1</code> client simply starts seeing new optional fields. AIP-185 also describes release channels (alpha, beta, stable) and recommends 180 days of notice when deprecating a beta. The version is visible in every log line, link and curl command, and an upgrade means editing every URL.</p>
+        <p><strong>A date-named version in a header (GitHub REST).</strong> At the time of writing (November 2026), GitHub's REST API has two versions, <code>2022-11-28</code> and <code>2026-03-10</code>, chosen with the <code>X-GitHub-Api-Version</code> header. A request with no header gets 2022-11-28. The URL never changes; the version lives in client code, which is tidy until someone forgets to send the header and is silently on the oldest one.</p>
+        <p><strong>Dated releases pinned per account (Stripe).</strong> Each account has a default API version. A <code>Stripe-Version</code> header overrides it for one request, which is how a team tests an upgrade before moving the default. Since <code>2024-09-30.acacia</code>, Stripe ships monthly releases with no breaking changes and two major releases a year; at the time of writing (November 2026) the current version was <code>2026-10-28.endive</code>. Re-verify that before you quote it, because it changes every month.</p>
+        <p><strong>Which one is right?</strong> None of them everywhere, and the published practice genuinely disagrees. The path style is the most visible and the bluntest. The header style keeps URLs stable and puts the burden on every client to send it. The account pin protects integrations nobody is maintaining, at the cost of the provider running many versions at once. Pick by asking who pays for an upgrade and who notices a forgotten one, then write your choice into the reference page's first screen.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Major version zero, and why Parcelpoint is past it<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>SemVer rule 4 says that a 0.y.z version is initial development: anything may change at any time, and the public API should not be considered stable. That is an honest label for an API still finding its shape, and a dishonest one for an API with paying users who have been told to build on it.</p>
+        <p>Parcelpoint (constructed) is at 1.4.2. It declared a public API at 1.0.0, so every 1.x user is owed rule 7 and the FAQ's ordering: a deprecation in a minor, a removal only in a major. The session 5 bench does not model rule 4 at all; it treats every version as post-1.0. If your own API is still 0.x, the bump the bench computes is the one you would owe after 1.0, which is a useful rehearsal and not a requirement yet.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>v1, never v1.0.</strong> Google's AIP-185 puts only the major version in the path, and says so plainly: the path carries <code>v1</code>, not <code>v1.0</code>. Minor and patch changes land in place under the same path. The rule is small, and it removes a whole class of client bug: nobody hard-codes a minor version that later disappears.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-2">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers Keep a Changelog and the deprecation signal</span>
+      <h2>Say it in the changelog, then say it on the wire</h2>
+      <span class="tag concept">5 min live</span>
+    </div>
+    <p class="lede">A deprecation has two audiences. The people who read changelogs find it under a <code>### Deprecated</code> heading. Everyone else, which is most of your callers, only ever sees HTTP responses, so the deprecation has to travel in the response too. Two RFCs give it a standard shape: one header says when the thing was or will be deprecated, the other says when it stops answering. Below is the constructed plan for Parcelpoint's status endpoint.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A timeline for the Constructed Parcelpoint example endpoint GET /lockers/{locker_id}/status, a constructed plan. Today v1.4.2, the endpoint works. v1.5.0 on 2026-12-01 marks it deprecated, and every response carries Deprecation: @1796083200, which is 2026-12-01 00:00:00 UTC. A 182-day migration window follows, during which v2.0.0 ships and v1 still answers. On 2027-06-01 the Sunset header date, Tue, 01 Jun 2027 00:00:00 GMT, arrives and the v1 path is retired; after it callers should expect a 4xx, a 3xx or no response, for example 410 Gone.">
+        <defs>
+          <filter id="s6bSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="67" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s6bHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s6bAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s6bH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s6bL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s6bM { font: 600 11px Inter, sans-serif; fill: #17231A; }
+          .s6bS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s6bB { font: 800 11px Inter, sans-serif; fill: #6B4700; }
+          .s6bA { font: 700 11px Inter, sans-serif; fill: #1A4715; }
+          .s6bR { font: 800 11px Inter, sans-serif; fill: #991B1B; }
+          .s6bN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s6bH" x="30" y="26">ONE ENDPOINT'S LAST SIX MONTHS</text>
+        <text class="s6bS" x="30" y="44">Constructed Parcelpoint example · GET /lockers/{locker_id}/status · dates are Parcelpoint's constructed plan</text>
+
+        <g filter="url(#s6bSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- header boxes -->
+          <rect x="100" y="62" width="240" height="50" rx="9" transform="rotate(-0.6 220 87)" fill="#FFFFFF"/>
+          <rect x="530" y="62" width="270" height="50" rx="9" transform="rotate(0.5 665 87)" fill="#FFFFFF"/>
+          <path d="M220 114 L220 146" marker-end="url(#s6bAr)"/>
+          <path d="M665 114 L665 146" marker-end="url(#s6bAr)"/>
+          <!-- rail: working, window, after -->
+          <path d="M60 160 L218 160"/>
+          <circle cx="70" cy="160" r="6" fill="#FFFFFF"/>
+          <rect x="220" y="148" width="445" height="24" rx="6" fill="#F2B33D"/>
+          <path d="M520 144 L520 176"/>
+          <rect x="667" y="148" width="183" height="24" rx="6" fill="#FEF2F2" stroke="#FCA5A5"/>
+          <!-- doodle: a small clock -->
+          <circle cx="846" cy="28" r="12" fill="#FFFFFF"/>
+          <path d="M846 28 L846 20 M846 28 L852 31"/>
+        </g>
+
+        <text class="s6bM" x="112" y="83">Deprecation: @1796083200</text>
+        <text class="s6bS" x="112" y="101">= 2026-12-01 00:00:00 UTC · RFC 9745</text>
+        <text class="s6bM" x="542" y="83">Sunset: Tue, 01 Jun 2027 00:00:00 GMT</text>
+        <text class="s6bS" x="542" y="101">an HTTP-date · RFC 8594</text>
+
+        <text class="s6bA" x="520" y="138" text-anchor="middle">v2.0.0 ships</text>
+        <text class="s6bM" x="236" y="165">migration window · 182 days</text>
+        <text class="s6bR" x="758" y="165" text-anchor="middle">4xx, 3xx or nothing</text>
+
+        <text class="s6bL" x="50" y="196">v1.4.2</text>
+        <text class="s6bS" x="50" y="212">status works</text>
+        <text class="s6bL" x="220" y="196">v1.5.0 · 2026-12-01</text>
+        <text class="s6bS" x="220" y="212">### Deprecated line, headers on</text>
+        <text class="s6bS" x="520" y="196" text-anchor="middle">v1 still answers</text>
+        <text class="s6bL" x="665" y="212" text-anchor="middle">2027-06-01</text>
+        <text class="s6bS" x="665" y="228" text-anchor="middle">v1 path retired</text>
+        <text class="s6bR" x="850" y="252" text-anchor="end">for example 410 Gone</text>
+
+        <text class="s6bB" x="30" y="252">Sunset may never be earlier than Deprecation</text>
+        <text class="s6bN" x="30" y="282">From 2026-12-01 every status response also links the guide: rel="deprecation" and rel="sunset".</text>
+        <text class="s6bN" x="30" y="302">Deprecation says when it is deprecated; Sunset says when it may stop answering. A hint, not a guarantee.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - two headers, two dates: one starts the clock, the other is when the clock runs out</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Keep a Changelog, the parts that matter for a deprecation<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Keep a Changelog 1.1.0 starts from one idea: changelogs are for humans, not machines. One entry per version, latest first, each with its release date in ISO 8601 (YYYY-MM-DD), and an <code>Unreleased</code> section at the top for what is coming. Changes sort into six types: Added, Changed, Deprecated, Removed, Fixed and Security. A release pulled after shipping keeps its entry, tagged <code>[YANKED]</code>, because someone may already have installed it. And it calls dumping a commit log into the changelog "a bad idea", for the obvious reason: commits are written for the people who made the change, not for the people affected by it.</p>
+        <p>The general craft of changelogs, including tone and how much to say, belongs to <a href="https://phoebefu6.github.io/learn-tech-writing-with-phoebe/courses/06-reference-adrs-changelogs.html">Learn Tech Writing, session 6</a>. What is API-specific is the Deprecated type. It is the only one that is a promise about the future, so it must carry two things a normal line does not: what to use instead, and the date after which the old thing goes away.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Deprecation and Sunset, header by header<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>Deprecation, RFC 9745</strong> (March 2025, Standards Track). Its value is a Structured Field Date: an <code>@</code> followed by Unix seconds. <code>Deprecation: @1796083200</code> means 2026-12-01 00:00:00 UTC. The date may be in the past (it is deprecated already) or in the future (it will be). A <code>Link</code> header with <code>rel="deprecation"</code> points to human-readable documentation, which for the Constructed Parcelpoint example is the migration guide.</p>
+        <p><strong>Sunset, RFC 8594</strong> (May 2019, Informational). Its value is an HTTP-date, the same format as <code>Date</code> and <code>Expires</code>: <code>Sunset: Tue, 01 Jun 2027 00:00:00 GMT</code>. After that moment the client should expect the resource to stop answering: a 4xx, a 3xx, or no response at all. The RFC presents it as a hint, not a guarantee, and a <code>rel="sunset"</code> link can point to the policy behind the date.</p>
+        <p><strong>The rule that ties them.</strong> RFC 9745 says the Sunset timestamp MUST NOT be earlier than the Deprecation date. That is common sense written down: you cannot switch something off before you have told anyone it is going. What happens after sunset is your choice within that range; Parcelpoint's constructed plan returns <code>410 Gone</code> with a body that names the replacement, which is one reasonable reading of "expect a 4xx".</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>How long is long enough?</strong> GitHub supports a previous REST API version for at least 24 months after a newer one is released; at the time of writing (November 2026), 2022-11-28 is supported until March 10, 2028. Stripe ships two major releases a year and keeps monthly releases free of breaking changes. Google's AIP-185 recommends 180 days for deprecating a beta. Three providers, three windows, and none of them is a standard; Parcelpoint's 182 days is a constructed choice, and yours should be written down before the first deprecation, not argued about during it.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-3">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers the migration guide</span>
+      <h2>One step per broken promise</h2>
+      <span class="tag concept">4 min live</span>
+    </div>
+    <p class="lede">The session 5 bench drafted the constructed Parcelpoint's v2.0.0 changelog from the diff: 30 changes, 12 of them breaking, which merge into ten breaking lines because identical lines across operations collapse into one. Every one of those ten lines is a promise v1 made and v2 breaks. A migration guide is the same ten lines, each turned into an instruction: what to send or read instead, and by when. The machine found the breaks. Only a person can write the "instead".</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 390" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ten pairs. Left column, the ten breaking lines the session 5 bench drafted for the Constructed Parcelpoint example v1 to v2. Right column, the human migration step for each: operation removed GET /lockers/{locker_id}/status pairs with read free_slots on GET /lockers/{locker_id}; query page removed pairs with send cursor; per_page removed pairs with send limit; response locker_id removed pairs with read id; response page removed pairs with stop reading page; total_pages removed pairs with loop until next_cursor is null; 201 removed on POST /reservations pairs with treat 202 as accepted and confirm by webhook; auth apiKey to bearer pairs with register webhooks with a bearer token; new required recipient_email pairs with send recipient_email; size no longer accepts xl pairs with send large.">
+        <defs>
+          <filter id="s6cSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="71" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s6cHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s6cAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s6cH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s6cL { font: 600 11.5px Inter, sans-serif; fill: #17231A; }
+          .s6cS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s6cR { font: 800 12px Inter, sans-serif; fill: #991B1B; }
+          .s6cG { font: 800 12px Inter, sans-serif; fill: #12330E; }
+          .s6cK { font: 400 11px Inter, sans-serif; fill: #17231A; }
+          .s6cN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s6cR" x="30" y="30">MACHINE-DRAFTED · all ten BREAKING</text>
+        <text class="s6cS" x="30" y="48">session 5 bench, Parcelpoint v1 to v2 (constructed)</text>
+        <text class="s6cG" x="490" y="30">HUMAN-WRITTEN · instead, by 2027-06-01</text>
+        <text class="s6cS" x="490" y="48">the migration guide, one step per line</text>
+
+        <g filter="url(#s6cSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="20" y="62" width="380" height="282" rx="12" transform="rotate(-0.3 210 203)" fill="#FEF2F2" stroke="#FCA5A5"/>
+          <rect x="480" y="62" width="380" height="282" rx="12" transform="rotate(0.3 670 203)" fill="#EEF6E8" stroke="#1A4715"/>
+          <path d="M406 86 L472 86" marker-end="url(#s6cAr)"/>
+          <path d="M406 112 L472 112" marker-end="url(#s6cAr)"/>
+          <path d="M406 138 L472 138" marker-end="url(#s6cAr)"/>
+          <path d="M406 164 L472 164" marker-end="url(#s6cAr)"/>
+          <path d="M406 190 L472 190" marker-end="url(#s6cAr)"/>
+          <path d="M406 216 L472 216" marker-end="url(#s6cAr)"/>
+          <path d="M406 242 L472 242" marker-end="url(#s6cAr)"/>
+          <path d="M406 268 L472 268" marker-end="url(#s6cAr)"/>
+          <path d="M406 294 L472 294" marker-end="url(#s6cAr)"/>
+          <path d="M406 320 L472 320" marker-end="url(#s6cAr)"/>
+          <!-- doodle: a pencil, the human column is written by hand -->
+          <path d="M846 18 L864 36 L860 40 L842 22 Z"/>
+          <path d="M864 36 L868 44 L860 40"/>
+          <rect x="836" y="80" width="12" height="12" rx="2" fill="#F2B33D"/>
+          <rect x="836" y="288" width="12" height="12" rx="2" fill="#F2B33D"/>
+        </g>
+
+        <rect x="490" y="352" width="10" height="10" fill="#F2B33D"/>
+
+        <text class="s6cK" x="34" y="90">operation removed · GET /lockers/{locker_id}/status</text>
+        <text class="s6cK" x="34" y="116">query parameter page removed · GET /lockers</text>
+        <text class="s6cK" x="34" y="142">query parameter per_page removed · GET /lockers</text>
+        <text class="s6cK" x="34" y="168">response field locker_id removed · 2 operations</text>
+        <text class="s6cK" x="34" y="194">response field page removed · GET /lockers</text>
+        <text class="s6cK" x="34" y="220">response field total_pages removed · GET /lockers</text>
+        <text class="s6cK" x="34" y="246">success response 201 removed · POST /reservations</text>
+        <text class="s6cK" x="34" y="272">auth changed from apiKey to bearer · POST /webhooks</text>
+        <text class="s6cK" x="34" y="298">new required field recipient_email · POST /parcels</text>
+        <text class="s6cK" x="34" y="324">size no longer accepts xl · 2 operations</text>
+
+        <text class="s6cL" x="494" y="90">Read free_slots on GET /lockers/{locker_id}</text>
+        <text class="s6cL" x="494" y="116">Send cursor = the last next_cursor</text>
+        <text class="s6cL" x="494" y="142">Send limit (up to 100) instead</text>
+        <text class="s6cL" x="494" y="168">Read id instead of locker_id</text>
+        <text class="s6cL" x="494" y="194">Stop reading page; keep next_cursor</text>
+        <text class="s6cL" x="494" y="220">Loop until next_cursor is null</text>
+        <text class="s6cL" x="494" y="246">Treat 202 as accepted; confirm by webhook</text>
+        <text class="s6cL" x="494" y="272">Register webhooks with a bearer token</text>
+        <text class="s6cL" x="494" y="298">Send recipient_email on every parcel</text>
+        <text class="s6cL" x="494" y="324">Send large where you sent xl</text>
+
+        <text class="s6cS" x="508" y="361">marked rows can start today: free_slots and recipient_email exist from 1.5.0</text>
+        <text class="s6cN" x="30" y="382">A diff knows what broke. Only a person knows what to do instead, and that half is the one the reader came for.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - every red line on the left earns exactly one green instruction on the right, and nothing on the right is new information the spec does not hold</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>From a changelog line to a migration step<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Each step has the same four parts: <strong>what changed</strong> (the drafted line, unchanged), <strong>who it hits</strong> (which operation, which field), <strong>what to do instead</strong> (the exact field, parameter or header to send or read), and <strong>by when</strong> (the sunset date, or "now" if the replacement already exists). Write them in the order a client would hit them during one request, not in changelog order: pagination before parsing, auth before the call.</p>
+        <p>The "instead" must come from the v2 spec, never from memory. <code>free_slots</code> is a property of <code>Locker</code> in v2; <code>limit</code> is described as lockers per page, up to 100; <code>next_cursor</code> is a string or null, so the loop ends on null. Where the spec is silent, the guide says so. The v2 spec says reservations are "confirmed by webhook" but its webhook event list still only names <code>parcel.delivered</code>, <code>parcel.picked_up</code> and <code>parcel.expired</code>. The honest step says which event to listen for once the constructed Parcelpoint documents it, and flags the gap, exactly like the "none documented" habit from session 3.</p>
+        <p>Two of the ten steps can start before v2 exists. Parcelpoint 1.5.0 already adds <code>free_slots</code> to <code>Locker</code> and an optional <code>recipient_email</code> to <code>ParcelCreate</code>, which is the whole point of shipping the minor first: users can migrate on their own schedule while v1 still answers. The bench's consumer view says 4 of 6 constructed consumers are hit by v2; a guide that lets them start in 1.5.0 turns a cliff into a slope.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What the Unreleased section is for during a deprecation<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Keep a Changelog puts an <code>Unreleased</code> section at the top so people can see what is coming before it ships. During a deprecation window that section does real work: the v2 removals sit there under <code>### Removed</code>, marked breaking, for the whole six months, so a reader on 1.5.0 can see the exact list they are migrating towards without reading a spec diff.</p>
+        <p>When 2.0.0 ships, the Unreleased lines move under a <code>## [2.0.0] - YYYY-MM-DD</code> heading and nothing about their wording changes. That is the test of a good Unreleased line: it is already written for the person affected. If you find yourself rewriting it on release day, it was written for the person who made the change. Diffing tools, release-note generators and changelog linters exist as a category and can keep the section current; none of them can write the "instead".</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>GitHub's breaking list is a migration-guide checklist.</strong> GitHub's "API Versions" page lists what it treats as breaking: removing an endpoint, removing or renaming a parameter or response field, adding a required parameter, changing a type, removing enum values, adding new validation, and changing authentication. Hold the constructed Parcelpoint's ten lines up against it and every one fits a row. Each row on that list is a sentence a migration guide must contain whenever it happens.</p>
+    </div>
+  </section>
+
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Build-along</span>
+      <h2>The deprecation kit, then the capstone score</h2>
+      <span class="tag demo">★ 22 min · everyone builds</span>
+    </div>
+    <p class="lede">Five steps, all in the page. The session 5 bench sits below, read-only and loaded with Parcelpoint v1 to v2 (Constructed Parcelpoint example), so you can read the drafted entry while you write the human version beside it. Write each piece in your own file first, then compare it with the box under each step. The last step scores the whole six-piece kit, and the figure shows how the pieces feed each other.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Parcelpoint's docs kit assembled, constructed example. The session 1 time-to-first-call audit found the drift and feeds the session 2 OpenAPI 3.1 spec, the one source. The spec feeds the session 3 reference page with fields and codes, the session 4 quickstart and example test checked against the spec, and the session 5 diff and changelog, which takes two spec versions. The diff feeds the session 6 deprecation kit, built from the ten breaking lines. A scorecard grades each of the six pieces from 0 to 2, twelve points in all.">
+        <defs>
+          <filter id="s6dSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="73" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s6dHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s6dAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s6dH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s6dL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s6dS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s6dB { font: 800 11px Inter, sans-serif; fill: #6B4700; }
+          .s6dA { font: 700 11px Inter, sans-serif; fill: #1A4715; }
+          .s6dW { font: 800 12px Inter, sans-serif; fill: #FFFFFF; }
+          .s6dV { font: 800 18px Inter, sans-serif; fill: #12330E; }
+          .s6dK { font: 600 11px Inter, sans-serif; fill: #17231A; }
+          .s6dN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s6dH" x="30" y="26">PARCELPOINT'S DOCS KIT, ASSEMBLED</text>
+        <text class="s6dS" x="30" y="46">constructed example · one piece per session</text>
+        <text class="s6dS" x="30" y="64">arrows = "built from or checked against"</text>
+
+        <g filter="url(#s6dSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="20" y="140" width="140" height="70" rx="10" transform="rotate(-1 90 175)" fill="#FFFFFF"/>
+          <rect x="210" y="125" width="160" height="100" rx="10" transform="rotate(0.6 290 175)" fill="#1A4715"/>
+          <rect x="450" y="40" width="190" height="70" rx="10" transform="rotate(-0.6 545 75)" fill="#EEF6E8"/>
+          <rect x="450" y="145" width="190" height="70" rx="10" transform="rotate(0.5 545 180)" fill="#EEF6E8"/>
+          <rect x="450" y="250" width="190" height="70" rx="10" transform="rotate(-0.4 545 285)" fill="#EEF6E8"/>
+          <rect x="690" y="250" width="170" height="70" rx="10" transform="rotate(0.8 775 285)" fill="#F2B33D"/>
+          <rect x="690" y="60" width="170" height="150" rx="10" transform="rotate(-0.5 775 135)" fill="url(#s6dHc)"/>
+          <rect x="702" y="86" width="146" height="110" rx="8" fill="#FFFFFF"/>
+          <path d="M162 175 L204 175" marker-end="url(#s6dAr)"/>
+          <path d="M372 145 C410 120 410 80 444 76" marker-end="url(#s6dAr)"/>
+          <path d="M372 178 L444 180" marker-end="url(#s6dAr)"/>
+          <path d="M372 205 C410 230 410 280 444 284" marker-end="url(#s6dAr)"/>
+          <path d="M642 285 L684 285" marker-end="url(#s6dAr)"/>
+          <!-- doodle: a check stamp -->
+          <circle cx="250" cy="290" r="16" fill="#FFFFFF"/>
+          <path d="M242 290 L248 296 L259 283"/>
+        </g>
+
+        <text class="s6dA" x="34" y="162">SESSION 1</text>
+        <text class="s6dL" x="34" y="180">TTFC audit</text>
+        <text class="s6dS" x="34" y="197">found the drift</text>
+
+        <text class="s6dW" x="226" y="152">SESSION 2</text>
+        <text class="s6dW" x="226" y="172">OpenAPI 3.1 spec</text>
+        <text class="s6dW" x="226" y="192">the one source</text>
+
+        <text class="s6dA" x="464" y="62">SESSION 3</text>
+        <text class="s6dL" x="464" y="80">Reference page</text>
+        <text class="s6dS" x="464" y="97">takes: fields and codes</text>
+        <text class="s6dA" x="464" y="167">SESSION 4</text>
+        <text class="s6dL" x="464" y="185">Quickstart + test</text>
+        <text class="s6dS" x="464" y="202">checked against the spec</text>
+        <text class="s6dA" x="464" y="272">SESSION 5</text>
+        <text class="s6dL" x="464" y="290">Diff + changelog</text>
+        <text class="s6dS" x="464" y="307">takes: two spec versions</text>
+
+        <text class="s6dA" x="704" y="272">SESSION 6</text>
+        <text class="s6dL" x="704" y="290">Deprecation kit</text>
+        <text class="s6dK" x="704" y="307">from 10 breaking lines</text>
+
+        <text class="s6dA" x="714" y="104">THE SCORECARD</text>
+        <text class="s6dK" x="714" y="124">6 pieces, 6 rows</text>
+        <text class="s6dK" x="714" y="142">0 to 2 per row</text>
+        <text class="s6dV" x="714" y="168">max 12</text>
+        <text class="s6dS" x="714" y="186">your numbers will differ</text>
+
+        <text class="s6dN" x="30" y="348">Each piece leans on the one before: a migration guide is only as true as the spec it was diffed from.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - six pieces, one source in the middle, and one score that is only as high as the weakest row lets it be</figcaption>
+    </figure>
+
+    <div class="adc-bench" data-preset="pp-major" data-lock="1"></div>
+
+    <div class="steps">
+      <div class="step">
+        <p><strong>Write the deprecation notice for <code>GET /lockers/{locker_id}/status</code>.</strong> Two parts: the response headers every call to the endpoint returns from 2026-12-01, and the changelog line in the 1.5.0 entry. Use the exact values from Part 2. Check yourself against the RFC rule: is the Sunset date later than the Deprecation date?</p>
+        <div class="prompt-box good"><span class="label">★ Step 1 · the deprecation notice (Constructed Parcelpoint example)</span>HTTP/1.1 200 OK
+Content-Type: application/json
+Deprecation: @1796083200
+Sunset: Tue, 01 Jun 2027 00:00:00 GMT
+Link: &lt;https://docs.parcelpoint.example/migrate/v2#locker-status&gt;; rel="deprecation"
+Link: &lt;https://docs.parcelpoint.example/policy/sunset&gt;; rel="sunset"
+
+{"free_slots": 3}
+
+## [1.5.0] - 2026-12-01
+### Deprecated
+- GET /lockers/{locker_id}/status is deprecated. Read free_slots on
+  GET /lockers/{locker_id} instead (available from this release).
+  The endpoint stops answering on 2027-06-01. Migration guide:
+  https://docs.parcelpoint.example/migrate/v2#locker-status
+
+# check: @1796083200 = 2026-12-01 00:00:00 UTC, earlier than the Sunset date</div>
+      </div>
+      <div class="step">
+        <p><strong>Rewrite the v2.0.0 changelog entry for humans.</strong> Read the drafted entry in the bench above. Keep every one of the ten breaking lines; delete none and soften none. To each one add the why in a clause and the instead in a sentence. The non-breaking lines can stay as the bench wrote them.</p>
+        <div class="prompt-box good"><span class="label">★ Step 2 · the v2.0.0 entry, breaking lines rewritten (excerpt)</span>## [2.0.0] - YYYY-MM-DD
+Upgrading from 1.x? Every breaking line below has a step in the
+migration guide. v1 keeps answering until 2027-06-01.
+
+### Changed
+- **BREAKING** POST /webhooks now needs a bearer token instead of
+  X-Api-Key, so webhook registration uses the same auth as the
+  dashboard. Send Authorization: Bearer &lt;token&gt;.
+- **BREAKING** POST /parcels requires recipient_email, so recipients
+  without a phone are notified. Send it on every parcel; it is
+  accepted from 1.5.0. recipient_phone is now optional.
+- **BREAKING** size no longer accepts xl on POST /parcels and
+  POST /reservations; xl lockers are retired. Send large instead.
+
+### Removed
+- **BREAKING** GET /lockers/{locker_id}/status is removed (deprecated
+  in 1.5.0). Read free_slots on GET /lockers/{locker_id}.
+- **BREAKING** GET /lockers no longer accepts page or per_page, and
+  no longer returns page or total_pages: lockers are now paged by
+  cursor. Send cursor and limit; read next_cursor until it is null.
+- **BREAKING** locker_id is no longer returned on GET /lockers and
+  GET /lockers/{locker_id}. Read id instead (same value).
+- **BREAKING** POST /reservations no longer answers 201. It answers
+  202: the reservation is accepted and confirmed by webhook.
+
+# the why clauses here are constructed: write your API's real reasons
+# "same value" for id is a claim to check, not something the diff shows</div>
+      </div>
+      <div class="step">
+        <p><strong>Write the migration guide: ten steps, one per breaking line.</strong> Each step names what changed, what to send or read instead, and by when. Order them the way a client meets them, and mark the two that can start today on 1.5.0.</p>
+        <div class="prompt-box good"><span class="label">★ Step 3 · the migration guide, v1 to v2 (Constructed Parcelpoint example)</span>Parcelpoint v1 to v2 migration guide. v1 stops answering on 2027-06-01.
+
+Auth
+ 1. POST /webhooks: send Authorization: Bearer &lt;token&gt; instead of
+    X-Api-Key. By 2027-06-01. (Where the token comes from: not yet
+    in the spec; Parcelpoint must document it before v2 ships.)
+
+Listing lockers
+ 2. GET /lockers: stop sending page. Send cursor = the next_cursor
+    from the previous response; omit it on the first call.
+ 3. GET /lockers: stop sending per_page. Send limit (up to 100).
+ 4. GET /lockers: stop reading page from the response.
+ 5. GET /lockers: stop reading total_pages. Loop until next_cursor
+    is null.
+ 6. GET /lockers and GET /lockers/{locker_id}: read id, not locker_id.
+
+Locker status
+ 7. Stop calling GET /lockers/{locker_id}/status. Read free_slots on
+    GET /lockers/{locker_id}. START NOW: free_slots exists from 1.5.0.
+
+Parcels and reservations
+ 8. POST /parcels: send recipient_email on every parcel.
+    START NOW: accepted from 1.5.0.
+ 9. POST /parcels and POST /reservations: send large where you sent xl.
+10. POST /reservations: treat 202 as "accepted", not "reserved".
+    Confirmation arrives by webhook. (Which event: not yet named in
+    the spec, whose events are parcel.delivered, parcel.picked_up
+    and parcel.expired. Flag it as a gap.)</div>
+      </div>
+      <div class="step">
+        <p><strong>Draw the timeline as text.</strong> Three dated rows and one undated one, each with what a v1 caller sees. Label it as Parcelpoint's constructed plan; your own API's dates belong to your own policy.</p>
+        <div class="prompt-box good"><span class="label">★ Step 4 · the timeline (a constructed plan)</span>today        v1.4.2   status endpoint works, no headers
+2026-12-01   v1.5.0   status deprecated: Deprecation, Sunset and Link
+                      headers on every response; ### Deprecated line;
+                      free_slots and recipient_email available
+(your date)  v2.0.0   ships with the migration guide; v1 still answers
+2027-06-01   sunset   v1 status endpoint retired; callers get an error,
+                      for example 410 Gone with the guide's URL
+
+window: 2026-12-01 to 2027-06-01 = 182 days
+rule:   Sunset (2027-06-01) is not earlier than Deprecation (2026-12-01)</div>
+      </div>
+      <div class="step">
+        <p><strong>Score the constructed Parcelpoint's whole docs kit.</strong> One row per piece, sessions 1 to 6. This is a ship gate, not a halfway check: grade the kit as it would go out the door tomorrow, and name the weakest row in your file. Your numbers will differ from anyone else's, and that is the point.</p>
+      </div>
+    </div>
+
+    <div class="scorecard" data-title="Parcelpoint docs kit: the capstone score" data-foot="Grade as if it ships tomorrow. A row at 0 is a reader the kit fails: name which one." data-msgs="12 of 12. Ship it: a stranger can make a first call, and a v1 user knows what to change before 2027-06-01.|Close, not shippable yet. A ship gate is passed by its weakest row; fix that row, then grade again.|Half a kit fails at least one of the five readers. Name which reader each low row fails and fix that row first.|Not ready to ship. Start where the upgrade reader gets hurt: the changelog and the deprecation kit.">
+      <div class="sc-row"><div class="sc-q">Session 1 · TTFC audit: the first screen passes in five minutes
+        <em>Base URL with version, auth header, one request that succeeds as pasted, the response, the two likely errors.</em></div></div>
+      <div class="sc-row"><div class="sc-q">Session 2 · OpenAPI spec: one valid 3.1 document is the source
+        <em>Every path, parameter, body and response the docs mention is in it, with shared components, and it validates.</em></div></div>
+      <div class="sc-row"><div class="sc-q">Session 3 · Reference page: the debug reader gets an answer
+        <em>Every field, every status code with cause and fix, and "none documented" where there is a gap.</em></div></div>
+      <div class="sc-row"><div class="sc-q">Session 4 · Quickstart + example test: the example cannot silently drift
+        <em>A test checks the quickstart against the spec and fails when the example stops working.</em></div></div>
+      <div class="sc-row"><div class="sc-q">Session 5 · Diff + changelog: the bump is the honest one
+        <em>Every breaking change found and marked, MAJOR for v2, never shipped as a minor.</em></div></div>
+      <div class="sc-row"><div class="sc-q">Session 6 · Deprecation kit: a v1 user knows what to do and by when
+        <em>Headers with exact dates, a Deprecated line in a minor, ten migration steps, a dated timeline.</em></div></div>
+    </div>
+
+    <div class="callout tip">
+      <p><strong>Read your guide as one consumer.</strong> Pick one of the 4 of 6 constructed consumers the bench marks as hit, read only the steps that mention the operations it calls, and ask whether a developer could finish the migration from those steps alone. If they would need to open the spec, a step is missing its "instead".</p>
+    </div>
+  </section>
+
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Before you ship your next breaking change</h2>
+      <span class="tag exercise">30 min</span>
+    </div>
+    <ol>
+      <li><strong>Find where your API's version travels.</strong> Path, header, account pin or nowhere. Write one sentence saying what a client changes to upgrade, and put it on your reference page's first screen.</li>
+      <li><strong>Find one thing you would deprecate.</strong> Write its Deprecation and Sunset headers with real dates, check that the Sunset date is not earlier, and write the <code>### Deprecated</code> line with its "instead".</li>
+      <li><strong>Turn your last breaking release into a migration guide.</strong> One step per broken promise: what changed, what to send or read instead, by when. Count how many steps your original release notes were missing.</li>
+      <li><strong>Score your own docs kit on the six rows above.</strong> Write down the weakest row and the reader it fails. That row is your next docs change, and it is usually not the one you expected.</li>
+    </ol>
+  </section>
+
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions</h2>
+    </div>
+    <p>Clear all three and session 6 gets stamped in your passport.</p>
+
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · The constructed Parcelpoint 1.4.2 marks <code>GET /lockers/{locker_id}/status</code> as deprecated and changes nothing else. Under SemVer 2.0.0, what version should that release be?</p>
+      <button class="qopt" type="button">A · 1.4.3, because nothing a caller sends or reads has changed yet</button>
+      <button class="qopt" type="button">B · 2.0.0, because deprecation is the first step of a removal</button>
+      <button class="qopt" type="button">C · 1.5.0, because rule 7 says MINOR must be incremented when public API functionality is marked deprecated</button>
+      <button class="qopt" type="button">D · No new version: a deprecation is only a docs note</button>
+      <p class="qwhy">A deprecation changes what you promise about the future, so it gets a minor. The removal comes later in a major, and the SemVer FAQ asks for at least one minor carrying the deprecation before it.</p>
+    </div>
+
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · A response carries <code>Deprecation: @1796083200</code> (2026-12-01) and <code>Sunset: Tue, 01 Jun 2027 00:00:00 GMT</code>. Which statement is right?</p>
+      <button class="qopt" type="button">A · The pair is valid: RFC 9745 says the Sunset timestamp must not be earlier than the Deprecation date, and after 2027-06-01 the caller should expect a 4xx, a 3xx or no response</button>
+      <button class="qopt" type="button">B · The pair is invalid, because the Deprecation date must already be in the past</button>
+      <button class="qopt" type="button">C · Sunset guarantees the endpoint answers until that exact second and never after</button>
+      <button class="qopt" type="button">D · The two headers must carry the same date</button>
+      <p class="qwhy">The Deprecation date may be past or future. RFC 8594 presents Sunset as a hint, not a guarantee, and RFC 9745 only forbids a Sunset earlier than the Deprecation date.</p>
+    </div>
+
+    <div class="quiz-q" data-answer="3">
+      <p class="qtext">3 · In GitHub's REST versioning, where does the version travel, and what happens if a client sends nothing?</p>
+      <button class="qopt" type="button">A · In the URL path as /v3, and a missing version is a 400</button>
+      <button class="qopt" type="button">B · Pinned on the account, with no way to override it per request</button>
+      <button class="qopt" type="button">C · In a query parameter, and a missing version gets the newest one</button>
+      <button class="qopt" type="button">D · In the X-GitHub-Api-Version request header as a date-named version, and a request without it gets 2022-11-28</button>
+      <p class="qwhy">At the time of writing (November 2026) the versions are 2022-11-28 and 2026-03-10. The URL never changes, which is why a forgotten header quietly means the oldest version. The account pin is Stripe's style, the path is Google AIP-185's.</p>
+    </div>
+
+    <p class="quiz-score"></p>
+  </section>
+
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Sources covered</span>
+      <h2>What this session teaches, and where it came from</h2>
+    </div>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Semantic Versioning 2.0.0</span><span class="note">Read at semver.org: MAJOR, MINOR, PATCH; rule 1 declare a public API; rule 4 major version zero; rule 7 deprecation forces a minor; the FAQ on deprecating before removing</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Keep a Changelog 1.1.0</span><span class="note">Read at keepachangelog.com: for humans, latest first, ISO 8601 dates, Unreleased at the top, six change types, [YANKED]</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">RFC 9745, The Deprecation HTTP Response Header Field (March 2025)</span><span class="note">Read at source: Structured Field Date, past or future, rel="deprecation", Sunset not earlier than Deprecation</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">RFC 8594, The Sunset HTTP Header Field (May 2019)</span><span class="note">Read at source: an HTTP-date, rel="sunset", expect 4xx, 3xx or no response after it; a hint, not a guarantee</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">GitHub Docs, "API Versions" (REST)</span><span class="note">Read at source: X-GitHub-Api-Version, 2022-11-28 and 2026-03-10, at least 24 months of support, the breaking list; at the time of writing, re-verify before delivery</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Stripe Docs, "Versioning" and "Changelog"</span><span class="note">Read at docs.stripe.com: account default, Stripe-Version override, monthly non-breaking releases since 2024-09-30.acacia, two majors a year; at the time of writing, re-verify before delivery</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google AIP-185, "API Versioning"</span><span class="note">Read at google.aip.dev/185: major version in the path (v1, not v1.0), minor and patch in place, alpha, beta and stable channels, 180 days for beta deprecation</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Parcelpoint deprecation plan and migration guide</span><span class="note">Constructed example: the dates, the 410 response and the why clauses are a constructed plan; the ten breaking lines are the session 5 bench output</span></div>
+    </div>
+    <p class="mono" style="margin-top:14px">Every fact on this page, and its verification tier, is recorded in the course's source map.</p>
+  </section>
+
+  <section class="cheat" id="cheatsheet">
+    <h3>Session 6 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Deprecate in a minor, remove in a major</b><span>SemVer rule 7, plus the FAQ: at least one minor carries the deprecation first.</span></div>
+      <div class="cheat-item"><b>Where the version travels</b><span>Path (Google AIP-185), header (GitHub), account pin (Stripe). Trade-offs, not a winner.</span></div>
+      <div class="cheat-item"><b>Deprecation header</b><span><code>Deprecation: @&lt;unix seconds&gt;</code> plus <code>Link: &lt;guide&gt;; rel="deprecation"</code>. RFC 9745.</span></div>
+      <div class="cheat-item"><b>Sunset header</b><span><code>Sunset: &lt;HTTP-date&gt;</code>, never earlier than Deprecation. A hint, not a guarantee. RFC 8594.</span></div>
+      <div class="cheat-item"><b>A Deprecated line owes two things</b><span>What to use instead, and the date the old thing goes away.</span></div>
+      <div class="cheat-item"><b>One step per broken promise</b><span>What changed, who it hits, what to send or read instead, by when. The diff finds the break; you write the instead.</span></div>
+    </div>
+  </section>
+
+  <div class="callout next">
+    <span class="nx-pill">What next</span>
+    <p>That is the whole kit: an audit, a spec, a reference page, a tested quickstart, an honest diff and a deprecation a reader can act on. Go back to the <a href="../index.html">course home</a> to revisit any session or rerun the bench on your own spec, and find the next course on the <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe hub</a>.</p>
+  </div>
+
+  <footer class="pagefoot">
+    <span>Session 6 of 6 · learn-api-docs-changelogs-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="05-the-changelog-checker.html">← Prev: The changelog checker</a> &nbsp;·&nbsp; <a href="../index.html">Course home →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/adc-sample.js?v=1"></script>
+<script src="../assets/adc-live.js?v=2"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

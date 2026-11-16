@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- social:start -->
+<meta name="description" content="Session 1 of 6. A developer meets your docs before your endpoint. The five jobs readers bring to API docs, time to first call as the number that matters, and a five-minute audit of the constructed Parcelpoint v1 docs.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Learn with Phoebe">
+<meta property="og:title" content="Docs as the API's interface - learn api docs changelogs with phoebe">
+<meta property="og:description" content="Session 1 of 6. Who reads API docs, what each reader needs, and a five-minute time-to-first-call audit you can run on any API today.">
+<meta property="og:url" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/courses/01-who-reads-the-docs.html">
+<meta property="og:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Docs as the API's interface - learn api docs changelogs with phoebe">
+<meta name="twitter:description" content="Session 1 of 6. Five reader jobs, time to first call, and a five-minute docs audit.">
+<meta name="twitter:image" content="https://phoebefu6.github.io/learn-api-docs-changelogs-with-phoebe/assets/og-cover.png">
+<!-- social:end -->
+<title>Session 1 · Docs as the API's interface - learn api docs changelogs with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-api-docs-changelogs-with-phoebe</a> / Session 1 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn API Docs &amp; Changelogs with Phoebe · Session 1 of 6</div>
+    <h1>Docs are the API's <span class="accent">first interface</span></h1>
+    <p class="sub">A developer meets your documentation before they meet your endpoint, and most of them decide whether to keep going inside the first few minutes. So the docs are not a description of the API: for the person reading them, they are the API. Tonight we name the five jobs readers bring to API docs, make time to first call the number we argue about, and run a five-minute audit on the docs of Parcelpoint, a constructed parcel-locker API whose v1 docs grew the way most docs grow, one page at a time.</p>
+    <div class="chip-row">
+      <span class="chip level">🟢 Foundations</span>
+      <span class="chip audience">Engineers who ship APIs, platform and DX teams, tech writers</span>
+      <span class="chip audience">No account or server needed</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Readers, jobs and time to first call</span>
+      <span class="a3" style="flex:5">18-40 · Build-along: the five-minute audit</span>
+      <span class="a4" style="flex:1">40-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where we start</h2>
+    </div>
+    <p class="lede">Two questions run through all six sessions. Could a stranger make a first successful call in five minutes? And when version 2 lands, would they know from your changelog exactly what to do? Everything else, from the OpenAPI spec to the deprecation header, is in service of those two. We carry one running case the whole way: the Constructed Parcelpoint example, a public REST API for parcel lockers, with lockers, parcels, reservations and webhooks for pickup events. Each session adds one piece to Parcelpoint's docs kit.</p>
+
+    <div class="legend">
+      <span class="pill">🎫 Clear all three quiz questions to stamp your passport</span>
+      <span class="pill">Live = presented in the 45 minutes</span>
+      <span class="pill">Self-study = the full depth, after class</span>
+      <span class="pill">★ Build-along = do it yourself, in the page</span>
+    </div>
+
+    <div class="callout win">
+      <p><strong>★ What you walk out with tonight.</strong> A five-minute time-to-first-call audit you can run on any API, including your own, a scored worksheet for the Parcelpoint v1 docs, and the habit of asking which of five readers a page is for before you write a word of it.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-1">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers the reader's jobs and the four doc kinds</span>
+      <h2>Five readers, five different pages</h2>
+      <span class="tag concept">6 min live</span>
+    </div>
+    <p class="lede">"The docs" are not one thing with one reader. The same developer arrives five times with five different questions, and a page that answers one of them well usually answers the others badly. The five jobs below are a working frame rather than a published standard: they are the questions people actually type into a docs search box, in the order a real integration asks them.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five stations along one developer's path through an API's docs: evaluate asks can it do my job and needs an explanation page; first call asks can I get a 200 and needs a quickstart; integrate asks how do I do X and needs how-to guides; debug asks why a 409 and needs the reference; upgrade asks what breaks in v2 and needs the changelog and a migration guide. First call is highlighted because it decides whether the other four ever happen.">
+        <defs>
+          <filter id="s1aSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="11" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s1aHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s1aAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s1aH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s1aL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s1aS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s1aB { font: 800 11px Inter, sans-serif; fill: #6B4700; }
+          .s1aV { font: 800 13px Inter, sans-serif; fill: #12330E; }
+          .s1aN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s1aH" x="30" y="26">ONE DEVELOPER, FIVE VISITS</text>
+        <text class="s1aS" x="236" y="26">the same person, a different question each time</text>
+
+        <g filter="url(#s1aSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="23" y="62" width="150" height="66" rx="10" transform="rotate(-0.8 98 95)" fill="#FFFFFF"/>
+          <rect x="194" y="62" width="150" height="66" rx="10" transform="rotate(0.7 269 95)" fill="#F2B33D"/>
+          <rect x="365" y="62" width="150" height="66" rx="10" transform="rotate(-0.5 440 95)" fill="#FFFFFF"/>
+          <rect x="536" y="62" width="150" height="66" rx="10" transform="rotate(0.6 611 95)" fill="#FFFFFF"/>
+          <rect x="707" y="62" width="150" height="66" rx="10" transform="rotate(-0.7 782 95)" fill="#FFFFFF"/>
+          <path d="M174 95 L190 95" marker-end="url(#s1aAr)"/>
+          <path d="M345 95 L361 95" marker-end="url(#s1aAr)"/>
+          <path d="M516 95 L532 95" marker-end="url(#s1aAr)"/>
+          <path d="M687 95 L703 95" marker-end="url(#s1aAr)"/>
+          <path d="M98 130 L98 150"/>
+          <path d="M269 130 L269 150"/>
+          <path d="M440 130 L440 150"/>
+          <path d="M611 130 L611 150"/>
+          <path d="M782 130 L782 150"/>
+          <rect x="31" y="152" width="134" height="32" rx="16" fill="#EEF6E8"/>
+          <rect x="202" y="152" width="134" height="32" rx="16" fill="#EEF6E8"/>
+          <rect x="373" y="152" width="134" height="32" rx="16" fill="#EEF6E8"/>
+          <rect x="544" y="152" width="134" height="32" rx="16" fill="url(#s1aHc)"/>
+          <rect x="715" y="152" width="134" height="32" rx="16" fill="#EEF6E8"/>
+        </g>
+
+        <text class="s1aH" x="98" y="88" text-anchor="middle">1 · Evaluate</text>
+        <text class="s1aS" x="98" y="108" text-anchor="middle">"Can it do my job?"</text>
+        <text class="s1aH" x="269" y="88" text-anchor="middle">2 · First call</text>
+        <text class="s1aL" x="269" y="108" text-anchor="middle">"Can I get a 200?"</text>
+        <text class="s1aH" x="440" y="88" text-anchor="middle">3 · Integrate</text>
+        <text class="s1aS" x="440" y="108" text-anchor="middle">"How do I do X?"</text>
+        <text class="s1aH" x="611" y="88" text-anchor="middle">4 · Debug</text>
+        <text class="s1aS" x="611" y="108" text-anchor="middle">"Why a 409?"</text>
+        <text class="s1aH" x="782" y="88" text-anchor="middle">5 · Upgrade</text>
+        <text class="s1aS" x="782" y="108" text-anchor="middle">"What breaks in v2?"</text>
+
+        <text class="s1aV" x="98" y="173" text-anchor="middle">Explanation</text>
+        <text class="s1aV" x="269" y="173" text-anchor="middle">Quickstart</text>
+        <text class="s1aV" x="440" y="173" text-anchor="middle">How-to guides</text>
+        <text class="s1aV" x="611" y="173" text-anchor="middle">Reference</text>
+        <text class="s1aV" x="782" y="173" text-anchor="middle">Changelog</text>
+
+        <text class="s1aS" x="98" y="210" text-anchor="middle">what it is, its limits,</text>
+        <text class="s1aS" x="98" y="226" text-anchor="middle">what it costs to try</text>
+        <text class="s1aS" x="269" y="210" text-anchor="middle">a key, the base URL,</text>
+        <text class="s1aS" x="269" y="226" text-anchor="middle">one request that works</text>
+        <text class="s1aS" x="440" y="210" text-anchor="middle">recipes: paginate,</text>
+        <text class="s1aS" x="440" y="226" text-anchor="middle">retry, receive webhooks</text>
+        <text class="s1aS" x="611" y="210" text-anchor="middle">every field, every code,</text>
+        <text class="s1aS" x="611" y="226" text-anchor="middle">every limit, exact</text>
+        <text class="s1aS" x="782" y="210" text-anchor="middle">breaking lines, dates,</text>
+        <text class="s1aS" x="782" y="226" text-anchor="middle">and the migration</text>
+
+        <text class="s1aB" x="269" y="252" text-anchor="middle">the gate for the other four</text>
+        <text class="s1aN" x="30" y="284">Nobody integrates, debugs or upgrades an API they never got a first 200 from. Station 2 decides the other four.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - a docs set is five answers to five questions, and the highlighted one is the gate the rest sit behind</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The five jobs, and what each one punishes<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>Evaluate.</strong> A tech lead with three candidate APIs and an afternoon. They want what it does, what it does not, and what it costs to try. They punish marketing copy and a signup wall in front of the reference.</p>
+        <p><strong>First call.</strong> The same person, ten minutes later, with a terminal open. They want a key, the base URL, the auth header and one request they can paste. They punish anything that sends them to a second page before the first 200.</p>
+        <p><strong>Integrate.</strong> A week later, building the real feature. They want task recipes: how to page through lockers, how to retry safely, how to verify a webhook. They punish a reference page pretending to be a guide.</p>
+        <p><strong>Debug.</strong> Production is returning 409 and nobody knows why. They want the exact meaning of every status code and field, fast, with the fix. They punish prose. This is the reference page's whole job, and session 3 is built around it.</p>
+        <p><strong>Upgrade.</strong> Version 2 is announced. They want the list of what breaks for them, the date it stops working and the change to make. They punish a changelog that reads like a commit log. Sessions 5 and 6 are built around this reader.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The four doc kinds, applied to an API (one-card recap)<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The Diataxis framework sorts documentation into four kinds: tutorials, how-to guides, reference and explanation. The full map and its compass live in <a href="https://phoebefu6.github.io/learn-tech-writing-with-phoebe/courses/05-diataxis.html">Learn Tech Writing, session 5</a>, and that is where to learn it; here is only how it lands on an API.</p>
+        <p>The quickstart is the API's tutorial. Recipes for pagination, retries and webhooks are how-to guides. The endpoint pages are reference, and Diataxis's own advice for reference fits APIs exactly: describe the machinery, and mirror the structure of the product, which for an API means one page per resource or operation, in the order of the spec. "Why cursors and not page numbers" is explanation. The changelog does not sit neatly in any of the four; <a href="https://phoebefu6.github.io/learn-tech-writing-with-phoebe/courses/06-reference-adrs-changelogs.html">tech writing session 6</a> treats it as the project's memory, and session 6 here adds what is API-specific about it: versions, deprecation and sunset.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>A reference page built for the debug reader.</strong> GitHub's REST reference entry for "Create an issue" lists, under one heading, the headers, the path parameters, the body parameters and every HTTP status code the call can return: 201, 400, 403, 404, 410, 422 and 503, each with its meaning, followed by a code sample. Nothing on it explains what an issue is or why you might want one. That is not an omission; that reader is somewhere else.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-2">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers time to first call</span>
+      <h2>Time to first call is the number</h2>
+      <span class="tag concept">5 min live</span>
+    </div>
+    <p class="lede">Time to first call is the elapsed time from a developer first landing on your docs to their first successful response. It is a docs metric disguised as an API metric: the endpoint answers in milliseconds, so almost every minute of it is spent reading, hunting and fixing. Below is one reader's audit of the Parcelpoint v1 docs, stopwatch running.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A stopwatch rail from minute 0 to minute 8 for one constructed audit of the Parcelpoint v1 docs. Landing at 0:00, quickstart found at 0:40, base URL hunted until 1:50, auth header found in the FAQ at 3:10, example copied at 4:30, the example returns 400 at 4:50 because its field names do not match the spec, and the first 201 arrives at 7:20, past the five-minute line. Hatched stretches mark minutes spent hunting rather than doing.">
+        <defs>
+          <filter id="s1bSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="23" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s1bHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s1bAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s1bH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s1bL { font: 600 11px Inter, sans-serif; fill: #17231A; }
+          .s1bS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s1bB { font: 800 11px Inter, sans-serif; fill: #6B4700; }
+          .s1bV { font: 800 16px Inter, sans-serif; fill: #12330E; }
+          .s1bR { font: 800 11px Inter, sans-serif; fill: #991B1B; }
+          .s1bN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s1bH" x="30" y="26">ONE READER, STOPWATCH RUNNING</text>
+        <text class="s1bS" x="262" y="26">Constructed Parcelpoint example, v1 docs; your times will differ</text>
+
+        <g filter="url(#s1bSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- rail 0..8 minutes, x = 60 + min * 95 -->
+          <path d="M60 130 L820 130"/>
+          <!-- hunting stretches hatched -->
+          <rect x="123" y="116" width="111" height="28" fill="url(#s1bHc)" stroke="none"/>
+          <rect x="235" y="116" width="126" height="28" fill="url(#s1bHc)" stroke="none"/>
+          <rect x="519" y="116" width="238" height="28" fill="url(#s1bHc)" stroke="none"/>
+          <!-- five minute line -->
+          <path d="M535 70 L535 176" stroke="#6B4700" stroke-dasharray="6 5"/>
+          <!-- event ticks -->
+          <path d="M60 122 L60 138"/>
+          <path d="M123 122 L123 138"/>
+          <path d="M234 122 L234 138"/>
+          <path d="M361 122 L361 138"/>
+          <path d="M488 122 L488 138"/>
+          <path d="M519 122 L519 138" stroke="#991B1B"/>
+          <circle cx="757" cy="130" r="9" fill="#F2B33D"/>
+        </g>
+
+        <text class="s1bB" x="535" y="62" text-anchor="middle">5:00 bar</text>
+
+        <text class="s1bL" x="60" y="104" text-anchor="middle">0:00</text>
+        <text class="s1bS" x="60" y="160" text-anchor="middle">lands</text>
+        <text class="s1bL" x="123" y="104" text-anchor="middle">0:40</text>
+        <text class="s1bS" x="123" y="176" text-anchor="middle">finds quickstart</text>
+        <text class="s1bL" x="234" y="104" text-anchor="middle">1:50</text>
+        <text class="s1bS" x="234" y="160" text-anchor="middle">base URL found</text>
+        <text class="s1bL" x="361" y="104" text-anchor="middle">3:10</text>
+        <text class="s1bS" x="361" y="176" text-anchor="middle">auth, in the FAQ</text>
+        <text class="s1bL" x="476" y="104" text-anchor="middle">4:30</text>
+        <text class="s1bS" x="452" y="160" text-anchor="middle">pastes example</text>
+        <text class="s1bR" x="560" y="104" text-anchor="start">4:50 · 400</text>
+        <text class="s1bS" x="560" y="176" text-anchor="start">wrong field names</text>
+        <text class="s1bV" x="757" y="104" text-anchor="middle">7:20</text>
+        <text class="s1bS" x="757" y="160" text-anchor="middle">first 201</text>
+
+        <text class="s1bH" x="60" y="222">Where the 7:20 went</text>
+        <text class="s1bS" x="60" y="242">hatched = hunting or fixing, not doing: 5:00 of the 7:20</text>
+        <text class="s1bS" x="480" y="242">the API itself answered in under a second</text>
+        <text class="s1bN" x="30" y="282">Every hatched minute is a docs defect with an address: a missing line, a page in the wrong order, an example that drifted.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - five of the seven minutes are spent looking for things that belonged on the first screen</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why this number and not page views or satisfaction<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Page views reward docs people get lost in. Satisfaction surveys reach the people who stayed. Time to first call measures the one moment every integration passes through, and it moves when the docs change: put the base URL and the auth header on the first screen and the 3:10 in the figure becomes 0:50 without touching a line of the API.</p>
+        <p>It has two honest limits. Measured from analytics, it only sees the people who succeeded; the reader who gave up at 4:50 never records a time at all, so track how many people start the quickstart and never finish it alongside the median time. And it says nothing about the four readers who come after. A fast quickstart in front of a reference that lies is a fast way to a slow week.</p>
+        <p>The five-minute bar used in the audit tonight is a working target, not an industry constant. Pick your own bar, write it down, and measure against it the same way every time, exactly like any other metric.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The vendor number, read as a vendor number<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The phrase "time to first call" is pushed hardest by Postman, whose blog post "Improve your time to first API call by 20x" (2023) opens with the claim that it is the most important API metric. The post reports one publisher's first call taking about 17 minutes, about 10 with a ready-made Postman collection, and a range of 1.7 to 56 times faster across publishers who used a forked collection.</p>
+        <p>Read that the way you read any vendor study of its own product: the direction is plausible, the size is not independently checked, and the method (which developers, which tasks, who timed it) is not published in enough detail to repeat. The idea survives without the number. Measure your own API, before and after one change, and quote that.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The claim and its source in one sentence.</strong> When a vendor says its tool makes first calls "up to 56 times faster", the honest restatement is: a tools company measured developers using its own tool and reports a range whose top end is 56. That sentence is not cynical. It is the sentence you would want written about your own launch numbers.</p>
+    </div>
+  </section>
+
+  <section class="section" id="part-3">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers the docs kit and why it starts from a spec</span>
+      <h2>The docs kit, and the one file that feeds it</h2>
+      <span class="tag concept">4 min live</span>
+    </div>
+    <p class="lede">Parcelpoint's v1 docs grew by accretion: a page per feature, written when the feature shipped, by whoever shipped it. Nothing connects them, so nothing keeps them true. Over six sessions we replace the pile with a kit in which one machine-readable description of the API feeds the reference, the examples and the changelog, so a change made once shows up everywhere it should.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Parcelpoint's docs kit as a flow. The session 1 audit feeds the session 2 OpenAPI spec. The spec feeds three things: the session 3 reference page, the session 4 quickstart and example test, and the session 5 diff that drafts the changelog. The diff feeds the session 6 deprecation notice, migration guide and sunset timeline. Each box names the reader job it serves.">
+        <defs>
+          <filter id="s1cSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="37" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <pattern id="s1cHc" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-38)"><line x1="0" y1="0" x2="0" y2="7" stroke="#1A4715" stroke-width="1" opacity=".5"/></pattern>
+          <marker id="s1cAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s1cH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s1cL { font: 600 12px Inter, sans-serif; fill: #17231A; }
+          .s1cS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s1cB { font: 800 11px Inter, sans-serif; fill: #6B4700; }
+          .s1cA { font: 700 11px Inter, sans-serif; fill: #1A4715; }
+          .s1cW { font: 800 12px Inter, sans-serif; fill: #FFFFFF; }
+          .s1cN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <text class="s1cH" x="30" y="26">PARCELPOINT'S DOCS KIT</text>
+        <text class="s1cS" x="210" y="26">one piece per session; arrows are "generated from or checked against"</text>
+
+        <g filter="url(#s1cSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="30" y="134" width="150" height="68" rx="10" transform="rotate(-1 105 165)" fill="#FFFFFF"/>
+          <rect x="226" y="124" width="170" height="82" rx="10" transform="rotate(0.6 311 165)" fill="#1A4715"/>
+          <rect x="446" y="52" width="190" height="68" rx="10" transform="rotate(-0.6 541 83)" fill="#EEF6E8"/>
+          <rect x="446" y="134" width="190" height="68" rx="10" transform="rotate(0.5 541 165)" fill="#EEF6E8"/>
+          <rect x="446" y="216" width="190" height="68" rx="10" transform="rotate(-0.4 541 247)" fill="url(#s1cHc)"/>
+          <rect x="680" y="216" width="176" height="68" rx="10" transform="rotate(0.8 768 247)" fill="#F2B33D"/>
+          <path d="M182 165 L220 165" marker-end="url(#s1cAr)"/>
+          <path d="M398 150 C420 120 420 90 440 86" marker-end="url(#s1cAr)"/>
+          <path d="M398 165 L440 165" marker-end="url(#s1cAr)"/>
+          <path d="M398 180 C420 210 420 240 440 244" marker-end="url(#s1cAr)"/>
+          <path d="M638 247 L674 247" marker-end="url(#s1cAr)"/>
+        </g>
+
+        <text class="s1cA" x="44" y="156">SESSION 1</text>
+        <text class="s1cL" x="44" y="174">TTFC audit</text>
+        <text class="s1cS" x="44" y="189">job: first call</text>
+
+        <text class="s1cW" x="242" y="150">SESSION 2</text>
+        <text class="s1cW" x="242" y="170">OpenAPI 3.1 spec</text>
+        <text class="s1cW" x="242" y="190">the one source</text>
+
+        <text class="s1cA" x="460" y="74">SESSION 3</text>
+        <text class="s1cL" x="460" y="92">Reference page</text>
+        <text class="s1cS" x="460" y="107">job: debug</text>
+        <text class="s1cA" x="460" y="156">SESSION 4</text>
+        <text class="s1cL" x="460" y="174">Quickstart + test</text>
+        <text class="s1cS" x="460" y="189">jobs: first call, integrate</text>
+        <text class="s1cA" x="460" y="238">SESSION 5</text>
+        <text class="s1cL" x="460" y="256">Diff + changelog</text>
+        <text class="s1cS" x="460" y="271">job: upgrade</text>
+
+        <text class="s1cA" x="694" y="238">SESSION 6</text>
+        <text class="s1cL" x="694" y="256">Deprecation kit</text>
+        <text class="s1cL" x="694" y="271">notice, guide, sunset</text>
+
+        <text class="s1cN" x="30" y="314">Change a field once, in the spec, and the reference, the test and the changelog all see it. That is the point of the middle box.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the dark box is the only file a human edits by hand; the rest are generated from it or checked against it</figcaption>
+    </figure>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why the docs are the interface, and the code is the implementation<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>A developer writing against Parcelpoint never sees its code. They see a page saying <code>POST /parcels</code> takes <code>locker_id</code>, <code>recipient_phone</code> and a <code>size</code> of small, medium, large or xl, and they write their client against that page. From that moment the page is a promise, and a server that disagrees with it is the bug, whichever one was written first.</p>
+        <p>That is why the kit puts a machine-readable spec in the middle. If the reference page is written by hand next to the code, the two drift apart in silence; if the reference, the examples and the changelog are generated from or tested against the same file the server is checked against, a drift turns into a failing build instead of a confused customer. Session 2 writes that file. Session 4 makes drift fail a test. Session 5 makes a breaking change impossible to ship without noticing.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What a docs kit is not<span class="mini">2 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>It is not a portal product. Hosted docs platforms, API clients with shareable collections and design studios all exist and many teams use them; they are a choice about where the kit is published, named here as a category, and every build-along in these six sessions runs in the page with no account. It is also not the docs-as-code pipeline itself (version control, review, preview builds), which <a href="https://phoebefu6.github.io/learn-tech-writing-with-phoebe/courses/07-docs-as-code.html">Learn Tech Writing, session 7</a> owns. The kit is what goes through that pipeline.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>A changelog built for the upgrade reader.</strong> Stripe's API changelog gives every change its own row, and every row carries an explicit "Breaking change?" column that reads Breaking or Non-breaking. Breaking changes are not tucked into a separate section; they sit in the same table, marked, so the reader scanning for "does this affect me" reads one column. Session 6 comes back to how Stripe pairs that column with dated API versions.</p>
+    </div>
+  </section>
+
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Build-along</span>
+      <h2>The five-minute audit of Parcelpoint v1</h2>
+      <span class="tag demo">★ 22 min · everyone builds</span>
+    </div>
+    <p class="lede">Below is the Parcelpoint v1 developer docs landing page, exactly as it grew (Constructed Parcelpoint example). You will read it as a first-call reader with a timer running, check its example against the API's own contract, and score it. Nothing to install: the page and the scorecard are the whole kit for tonight.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Before and after. On the left, the Parcelpoint v1 landing page in the order it grew: overview, what's new, webhooks, create a parcel, FAQ with auth at the bottom. On the right, the order a first-call reader needs: base URL and key, one request that works, the response, what to do next. Arrows show the auth line and the base URL having to travel from the bottom of the old page to the top of the new one.">
+        <defs>
+          <filter id="s1dSk" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="41" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
+          <marker id="s1dAr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#17231A" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+        <style>
+          .s1dH { font: 800 12px Inter, sans-serif; fill: #17231A; }
+          .s1dL { font: 600 11.5px Inter, sans-serif; fill: #17231A; }
+          .s1dS { font: 400 11px Inter, sans-serif; fill: #4C5A47; }
+          .s1dR { font: 800 12px Inter, sans-serif; fill: #991B1B; }
+          .s1dG { font: 800 12px Inter, sans-serif; fill: #12330E; }
+          .s1dN { font: 400 12px Inter, sans-serif; fill: #4C5A47; }
+        </style>
+
+        <g filter="url(#s1dSk)" fill="none" stroke="#17231A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="40" y="40" width="330" height="200" rx="12" fill="#FEF2F2" stroke="#FCA5A5"/>
+          <rect x="510" y="40" width="330" height="200" rx="12" fill="#EEF6E8" stroke="#1A4715"/>
+          <path d="M240 194 C420 194 420 86 500 86" marker-end="url(#s1dAr)"/>
+          <path d="M200 150 C420 150 430 112 500 110" marker-end="url(#s1dAr)"/>
+        </g>
+
+        <text class="s1dR" x="58" y="66">Before · v1, in the order it grew</text>
+        <text class="s1dS" x="58" y="94">1 Overview</text>
+        <text class="s1dS" x="58" y="114">2 What's new (newest last)</text>
+        <text class="s1dS" x="58" y="134">3 Webhooks</text>
+        <text class="s1dL" x="58" y="154">4 Create a parcel</text>
+        <text class="s1dS" x="58" y="174">base URL: inside the example</text>
+        <text class="s1dL" x="58" y="198">5 FAQ: "send X-Api-Key"</text>
+        <text class="s1dS" x="58" y="222">the first call needs 4 and 5</text>
+
+        <text class="s1dG" x="528" y="66">After · the first-call order</text>
+        <text class="s1dL" x="528" y="90">1 Base URL and the auth header</text>
+        <text class="s1dL" x="528" y="114">2 One request that works</text>
+        <text class="s1dS" x="528" y="138">3 The response you should see</text>
+        <text class="s1dS" x="528" y="162">4 The two errors you might see</text>
+        <text class="s1dS" x="528" y="186">5 Next: reference, guides</text>
+        <text class="s1dS" x="528" y="222">overview and history move down</text>
+
+        <text class="s1dN" x="30" y="276">Same content, new order. The reader reads top to bottom, so the first screen is a promise about what matters.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - nothing on the right is new writing; it is the left page reordered around the first-call reader</figcaption>
+    </figure>
+
+    <div class="steps">
+      <div class="step">
+        <p><strong>Start a five-minute timer and read the landing page as a stranger.</strong> You are a developer at a shop that wants to drop parcels into Parcelpoint lockers. Your only goal is one successful <code>POST /parcels</code>. Note the time at each moment you find something you needed.</p>
+        <div class="prompt-box good"><span class="label">★ Step 1 · the Parcelpoint v1 landing page, as it grew (constructed)</span>PARCELPOINT DEVELOPER DOCS
+
+1. Overview
+   Parcelpoint is a network of smart parcel lockers. Our REST API lets
+   partners find lockers, register parcels and reserve slots.
+
+2. What's new
+   1.2.0  Added size class xl.
+   1.3.0  Added open_24h to lockers.
+   1.4.2  Fixed created_at timezone on parcels.
+
+3. Webhooks
+   POST /webhooks with a url and the events you want:
+   parcel.delivered, parcel.picked_up, parcel.expired.
+
+4. Create a parcel
+   curl -X POST https://api.parcelpoint.example/parcels \
+     -d '{"locker": "LK-0042", "phone": "+1 555 0100", "size": "M"}'
+
+5. FAQ
+   How do I authenticate?  Send your key in the X-Api-Key header.
+   Where do I get a key?   Ask your account manager.</div>
+      </div>
+      <div class="step">
+        <p><strong>Check the example against the contract.</strong> This is what Parcelpoint's own OpenAPI document says <code>POST /parcels</code> requires (the same document the session 5 bench loads). Put the example from step 1 next to it and list every way the example would fail.</p>
+        <div class="prompt-box good"><span class="label">★ Step 2 · what the API actually requires (v1.4.2)</span>servers:   https://api.parcelpoint.example/v1
+security:  apiKey, sent as the X-Api-Key header
+
+POST /parcels
+  requestBody (required, application/json): ParcelCreate
+    locker_id        string   required
+    recipient_phone  string   required
+    size             string   required   one of: small, medium, large, xl
+  responses:
+    201  Parcel created
+    400  The request body is invalid
+    409  The locker has no free slot of that size</div>
+      </div>
+      <div class="step">
+        <p><strong>Write the defect list.</strong> Each defect gets one line: what is wrong, where the reader hits it, and the fix. There are at least six; compare yours with the list below only after you have written your own.</p>
+        <div class="prompt-box good"><span class="label">★ Step 3 · one reading of the defects</span>1. Base URL in the example lacks /v1          -> 404 before anything else
+2. No X-Api-Key header in the example          -> 401; the fix is in the FAQ
+3. No Content-Type: application/json header    -> body may not parse
+4. "locker" and "phone" are not the field names -> 400; the spec says
+   locker_id and recipient_phone
+5. size "M" is not in the enum                  -> 400; the spec says medium
+6. "Ask your account manager" for a key         -> the first call cannot
+   happen today at all for a self-serve reader
+7. What's new runs oldest first                 -> the upgrade reader scrolls</div>
+      </div>
+      <div class="step">
+        <p><strong>Rewrite the first screen.</strong> Use the "after" order from the figure: base URL and auth, one request that works, the response, the two likely errors, then links onward. Keep it under twenty lines. The request must match step 2 exactly.</p>
+        <div class="prompt-box good"><span class="label">★ Step 4 · a first screen that passes</span>Base URL   https://api.parcelpoint.example/v1
+Auth       X-Api-Key: &lt;your key&gt;   (keys: Dashboard &gt; Developers)
+
+curl -X POST https://api.parcelpoint.example/v1/parcels \
+  -H "X-Api-Key: $PARCELPOINT_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"locker_id": "LK-0042", "recipient_phone": "+1 555 0100", "size": "medium"}'
+
+You should get 201 Created and a parcel with a pickup_code.
+401  your key is missing or wrong: check the X-Api-Key header
+409  that locker has no free medium slot: try GET /lockers?city=...
+
+Next: the POST /parcels reference, then "Receive pickup webhooks".</div>
+      </div>
+      <div class="step">
+        <p><strong>Score both versions.</strong> Grade the original landing page on the scorecard below, honestly, then grade your rewrite. Write both totals at the top of your audit file. That file is piece one of Parcelpoint's docs kit, and session 6 scores the whole kit with the same honesty.</p>
+      </div>
+    </div>
+
+    <div class="scorecard" data-title="Time-to-first-call audit: six rows" data-foot="Grade the original first, then your rewrite. A row at 0 is a minute a real reader spends hunting.">
+      <div class="sc-row"><div class="sc-q">The base URL, with its version, is on the first screen
+        <em>Not only inside an example, and not on a separate "environments" page.</em></div></div>
+      <div class="sc-row"><div class="sc-q">How to get a key, and where it goes, comes before the first example
+        <em>Self-serve if at all possible. "Ask your account manager" scores 0 for a first-call reader.</em></div></div>
+      <div class="sc-row"><div class="sc-q">One request can be pasted as-is and succeeds
+        <em>Every field name and enum value checked against the spec, every header present.</em></div></div>
+      <div class="sc-row"><div class="sc-q">The expected response is shown
+        <em>The status code and the one field the reader needs next (here, pickup_code).</em></div></div>
+      <div class="sc-row"><div class="sc-q">The likely first errors are named with their fix
+        <em>For a first call that is usually 401 and one domain error, such as 409 here.</em></div></div>
+      <div class="sc-row"><div class="sc-q">The page ends by sending the reader onward
+        <em>To the reference for the call they just made, and to the guide for the next task.</em></div></div>
+    </div>
+
+    <div class="callout tip">
+      <p><strong>Time it on someone else.</strong> Your own docs are unreadable to you; you already know where everything is. The cheapest honest time-to-first-call measurement is a colleague from another team, a screen share, and you saying nothing for five minutes.</p>
+    </div>
+  </section>
+
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Before session 2</h2>
+      <span class="tag exercise">30 min</span>
+    </div>
+    <ol>
+      <li><strong>Run the five-minute audit on an API you depend on</strong> (a payment provider, a maps API, an internal service). Note the time at each moment you found something you needed, and where you found it.</li>
+      <li><strong>Run it on your own API's docs, on a colleague.</strong> Say nothing. Write down the first three places they hesitated.</li>
+      <li><strong>Sort your docs pages by reader job.</strong> One column per job from Part 1. Pages that serve two jobs badly go in both columns with a question mark; those are the pages to split.</li>
+      <li><strong>Find the contract.</strong> Does your API have a machine-readable description today (an OpenAPI file, a generated one, a schema anywhere)? Bring the answer to session 2, where we write Parcelpoint's.</li>
+    </ol>
+  </section>
+
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions</h2>
+    </div>
+    <p>Clear all three and session 1 gets stamped in your passport.</p>
+
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · A reader in production is getting a 409 from <code>POST /parcels</code> and wants to know why. Which page should answer them, and what does it owe them?</p>
+      <button class="qopt" type="button">A · The quickstart, because it shows a working call</button>
+      <button class="qopt" type="button">B · The overview, because it explains what Parcelpoint is</button>
+      <button class="qopt" type="button">C · The reference page for <code>POST /parcels</code>: every status code it returns, what each one means and the fix, found fast and with no prose to wade through</button>
+      <button class="qopt" type="button">D · The changelog, because 409 might be new</button>
+      <p class="qwhy">That is the debug job, and the reference is the debug reader's page. A quickstart that tried to list every error would fail its own reader, and the overview is for someone still deciding whether to use the API at all.</p>
+    </div>
+
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · In the audit, the first 201 arrives at 7:20 and the API itself answered in under a second. What does that tell you?</p>
+      <button class="qopt" type="button">A · Almost the whole time to first call is a docs cost: hunting for the base URL and the auth header and fixing an example that drifted from the spec, all of which a docs change can remove</button>
+      <button class="qopt" type="button">B · The API is too slow and needs caching</button>
+      <button class="qopt" type="button">C · Five minutes is an industry standard Parcelpoint failed</button>
+      <button class="qopt" type="button">D · The reader was not skilled enough to use a REST API</button>
+      <p class="qwhy">The hatched stretches are minutes with addresses: a line in the wrong place, a key behind an email, a field name that drifted. The five-minute bar is a working target to measure against, not a published constant.</p>
+    </div>
+
+    <div class="quiz-q" data-answer="3">
+      <p class="qtext">3 · Why does Parcelpoint's docs kit put an OpenAPI spec in the middle, feeding the reference, the examples and the changelog?</p>
+      <button class="qopt" type="button">A · Because hosted docs tools require one</button>
+      <button class="qopt" type="button">B · Because a spec replaces the need for a quickstart</button>
+      <button class="qopt" type="button">C · Because OpenAPI files are shorter than reference pages</button>
+      <button class="qopt" type="button">D · Because a change made once in the spec reaches every page generated from or tested against it, so drift between docs and API turns into a failing build instead of a confused customer</button>
+      <p class="qwhy">The docs are the promise developers code against. A single machine-readable source is what lets the promise and the server be checked against each other. The quickstart still matters; session 4 tests it against the same spec.</p>
+    </div>
+
+    <p class="quiz-score"></p>
+  </section>
+
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Sources covered</span>
+      <h2>What this session teaches, and where it came from</h2>
+    </div>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">The five reader jobs</span><span class="note">A working frame for these sessions, not a published standard; built from the questions developers bring to API docs</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Diataxis, reference</span><span class="note">Read at diataxis.fr: reference describes the machinery and mirrors the structure of the product. One-card recap; the full framework is tech-writing session 5</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Time to first call</span><span class="note">Postman blog, "Improve your time to first API call by 20x" (2023-04-04), read at source; a vendor claim about its own product, taught as one</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">GitHub REST reference structure</span><span class="note">GitHub Docs, Issues, "Create an issue": status codes 201, 400, 403, 404, 410, 422, 503 listed on the entry; read at source</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Stripe changelog structure</span><span class="note">Stripe Docs, Changelog: per-row "Breaking change?" column; read at source, re-verify before delivery</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Parcelpoint v1</span><span class="note">Constructed example; the spec on this page is the v1.4.2 document the session 5 bench loads</span></div>
+    </div>
+    <p class="mono" style="margin-top:14px">Every fact on this page, and its verification tier, is recorded in the course's source map.</p>
+  </section>
+
+  <section class="cheat" id="cheatsheet">
+    <h3>Session 1 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Five reader jobs</b><span>Evaluate, first call, integrate, debug, upgrade. Ask which one a page is for before writing it.</span></div>
+      <div class="cheat-item"><b>Time to first call</b><span>Landing to first successful response. Almost all of it is reading, hunting and fixing.</span></div>
+      <div class="cheat-item"><b>The first screen</b><span>Base URL with version, auth header, one request that works, the response, the two likely errors.</span></div>
+      <div class="cheat-item"><b>Check the example against the spec</b><span>Field names, enum values, headers. A drifted example is a 400 with your logo on it.</span></div>
+      <div class="cheat-item"><b>Measure honestly</b><span>A colleague, a screen share, silence. Count the people who quit, not only the times of those who finished.</span></div>
+      <div class="cheat-item"><b>One source feeds the kit</b><span>Spec in the middle; reference, examples and changelog generated from it or tested against it.</span></div>
+    </div>
+  </section>
+
+  <div class="callout next">
+    <span class="nx-pill">Next session</span>
+    <p>The audit found an example that disagreed with the contract. Session 2 writes the contract down properly: Parcelpoint's <code>/lockers</code> and <code>/parcels</code> in OpenAPI 3.1, with paths, parameters, request bodies, responses and shared components, and the honest argument between spec-first and code-first teams about which should come first.</p>
+  </div>
+
+  <footer class="pagefoot">
+    <span>Session 1 of 6 · learn-api-docs-changelogs-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← Course home</a> &nbsp;·&nbsp; <a href="02-spec-first-openapi.html">Next: Spec-first: describing an API in OpenAPI 3.1 →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>
